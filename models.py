@@ -91,107 +91,75 @@ class ReportModel(Base):
 # ##############################################################
 
 
-class Kpgz(Base):
+# Таблица "kpgz"
+class KpgzModel(Base):
     __tablename__ = "kpgz"
     id = Column(Integer, primary_key=True, unique=True, nullable=False)
     code_kpgz = Column(String(255), nullable=False)
     name = Column(String(255), nullable=False)
 
-    # Связь с таблицей cte
-    ctes = relationship("Cte", back_populates="kpgz")
+    # Один к многим: kpgz -> cte
+    cte_list = relationship("CteModel", back_populates="kpgz")
 
 
-class Ks(Base):
+# Таблица "ks"
+class KsModel(Base):
     __tablename__ = "ks"
-    id_ks = Column(Integer, primary_key=True, nullable=False, autoincrement=True)
+    id_ks = Column(Integer, primary_key=True, nullable=False)
     link = Column(String(255), nullable=False)
     start_ks = Column(DateTime, nullable=False)
     end_ks = Column(DateTime, nullable=False)
-    start_price = Column(Numeric(18, 2), nullable=False)
-    end_price = Column(Numeric(18, 2), nullable=False)
-    oferta_price = Column(Numeric(18, 2), nullable=False)
-    oferta_start = Column(DateTime, nullable=False)
-    oferta_end = Column(DateTime, nullable=False)
+    start_price = Column(Numeric(10, 0), nullable=False)
+    end_price = Column(Numeric(10, 0), nullable=False)
     customer_id = Column(Integer, ForeignKey("customer.id"), nullable=False)
-    winner_id = Column(Integer, ForeignKey("suppliers.id"), nullable=False)
+    winner_id = Column(Integer, ForeignKey("supplier.id"), nullable=False)
 
-    # Связи с таблицами customer и suppliers
-    customer = relationship("Customer", back_populates="ks")
-    winner = relationship("Supplier", back_populates="ks_won")
-    participants = relationship("Participant", back_populates="ks")
-    orders = relationship("Order", back_populates="ks")
+    # Связь с таблицей customer
+    customer = relationship("CustomerModel", back_populates="ks_list")
+    # Связь с таблицей supplier (победитель)
+    supplier_winner = relationship(
+        "SupplierModel", back_populates="ks_list", foreign_keys=[winner_id]
+    )
+    # Связь с таблицей order
+    orders = relationship("OrderModel", back_populates="ks")
+    # Связь с таблицей participant
+    participants = relationship("ParticipantModel", back_populates="ks")
 
 
-class Customer(Base):
+# Таблица "customer"
+class CustomerModel(Base):
     __tablename__ = "customer"
     id = Column(
         Integer, primary_key=True, autoincrement=True, unique=True, nullable=False
     )
     name = Column(String(255), nullable=False)
     inn = Column(String(255), nullable=False)
-    region_id = Column(Integer, ForeignKey("regions.id"), nullable=False)
+    region_id = Column(Integer, ForeignKey("region.id"), nullable=False)
 
-    # Связь с регионом и тендерами (ks)
-    region = relationship("Region", back_populates="customers")
-    ks = relationship("Ks", back_populates="customer")
-
-
-class Supplier(Base):
-    __tablename__ = "suppliers"
-    id = Column(
-        Integer, primary_key=True, autoincrement=True, unique=True, nullable=False
-    )
-    name = Column(String(255), nullable=False)
-    inn = Column(String(255), nullable=False)
-    region_id = Column(Integer, ForeignKey("regions.id"), nullable=False)
-
-    # Связь с регионом, выигранными тендерами и участием в торгах
-    region = relationship("Region", back_populates="suppliers")
-    ks_won = relationship("Ks", back_populates="winner")
-    participants = relationship("Participant", back_populates="supplier")
+    # Связь с таблицей region
+    region = relationship("RegionModel", back_populates="customers")
+    # Связь с таблицей ks
+    ks_list = relationship("KsModel", back_populates="customer")
 
 
-class Cte(Base):
+# Таблица "cte"
+class CteModel(Base):
     __tablename__ = "cte"
     id = Column(
         Integer, primary_key=True, autoincrement=True, unique=True, nullable=False
     )
     name = Column(String(255), nullable=False)
     link = Column(String(255), nullable=False)
-    price = Column(Numeric(18, 2), nullable=False)
     kpgz_id = Column(Integer, ForeignKey("kpgz.id"), nullable=False)
 
-    # Связь с kpgz и заказами
-    kpgz = relationship("Kpgz", back_populates="ctes")
-    orders = relationship("Order", back_populates="cte")
+    # Связь с таблицей kpgz
+    kpgz = relationship("KpgzModel", back_populates="cte_list")
+    # Связь с таблицей order
+    orders = relationship("OrderModel", back_populates="cte")
 
 
-class Participant(Base):
-    __tablename__ = "participants"
-    id = Column(
-        Integer, primary_key=True, autoincrement=True, unique=True, nullable=False
-    )
-    id_ks = Column(Integer, ForeignKey("ks.id_ks"), nullable=False)
-    id_participant = Column(Integer, ForeignKey("suppliers.id"), nullable=False)
-
-    # Связь с тендером (Ks) и поставщиком
-    ks = relationship("Ks", back_populates="participants")
-    supplier = relationship("Supplier", back_populates="participants")
-
-
-class Region(Base):
-    __tablename__ = "regions"
-    id = Column(
-        Integer, primary_key=True, autoincrement=True, unique=True, nullable=False
-    )
-    name = Column(String(255), nullable=False)
-
-    # Связь с клиентами и поставщиками
-    customers = relationship("Customer", back_populates="region")
-    suppliers = relationship("Supplier", back_populates="region")
-
-
-class Order(Base):
+# Таблица "order"
+class OrderModel(Base):
     __tablename__ = "order"
     id = Column(
         Integer, primary_key=True, autoincrement=True, unique=True, nullable=False
@@ -199,7 +167,56 @@ class Order(Base):
     id_cte = Column(Integer, ForeignKey("cte.id"), nullable=False)
     id_ks = Column(Integer, ForeignKey("ks.id_ks"), nullable=False)
     count = Column(Integer, nullable=False)
+    price = Column(Numeric(10, 0), nullable=False)
+    oferta_start = Column(DateTime, nullable=False)
+    oferta_end = Column(DateTime, nullable=False)
+    oferta_price = Column(Numeric(10, 0), nullable=False)
 
-    # Связь с cte и тендером (Ks)
-    cte = relationship("Cte", back_populates="orders")
-    ks = relationship("Ks", back_populates="orders")
+    # Связь с таблицами cte и ks
+    cte = relationship("CteModel", back_populates="orders")
+    ks = relationship("KsModel", back_populates="orders")
+
+
+# Таблица "supplier"
+class SupplierModel(Base):
+    __tablename__ = "supplier"
+    id = Column(
+        Integer, primary_key=True, autoincrement=True, unique=True, nullable=False
+    )
+    name = Column(String(255), nullable=False)
+    inn = Column(String(255), nullable=False)
+    region_id = Column(Integer, ForeignKey("region.id"), nullable=False)
+
+    # Связь с таблицей region
+    region = relationship("RegionModel", back_populates="suppliers")
+    # Связь с таблицей ks (как победитель торгов)
+    ks_list = relationship("KsModel", back_populates="supplier_winner")
+    # Связь с таблицей participant
+    participants = relationship("ParticipantModel", back_populates="supplier")
+
+
+# Таблица "participant"
+class ParticipantModel(Base):
+    __tablename__ = "participant"
+    id = Column(
+        Integer, primary_key=True, autoincrement=True, unique=True, nullable=False
+    )
+    id_ks = Column(Integer, ForeignKey("ks.id_ks"), nullable=False)
+    id_participant = Column(Integer, ForeignKey("supplier.id"), nullable=False)
+
+    # Связи с таблицами ks и supplier
+    ks = relationship("KsModel", back_populates="participants")
+    supplier = relationship("SupplierModel", back_populates="participants")
+
+
+# Таблица "region"
+class RegionModel(Base):
+    __tablename__ = "region"
+    id = Column(
+        Integer, primary_key=True, autoincrement=True, unique=True, nullable=False
+    )
+    name = Column(String(255), nullable=False)
+
+    # Связи с таблицами customer и supplier
+    customers = relationship("CustomerModel", back_populates="region")
+    suppliers = relationship("SupplierModel", back_populates="region")

@@ -50,16 +50,13 @@ class KpgzSchema(BaseModel):
         from_attributes = True
 
 
-class KSSchema(BaseModel):
+class KsSchema(BaseModel):
     id_ks: int
     link: str
     start_ks: datetime
     end_ks: datetime
     start_price: Decimal
     end_price: Decimal
-    oferta_price: Decimal
-    oferta_start: datetime
-    oferta_end: datetime
     customer_id: int
     winner_id: int
 
@@ -91,7 +88,6 @@ class CteSchema(BaseModel):
     id: int
     name: str
     link: str
-    price: Decimal
     kpgz_id: int
 
     class Config:
@@ -119,6 +115,10 @@ class OrderSchema(BaseModel):
     id: int
     id_cte: int
     id_ks: int
+    price: Decimal
+    oferta_price: Decimal
+    oferta_start: datetime
+    oferta_end: datetime
     count: int
 
     class Config:

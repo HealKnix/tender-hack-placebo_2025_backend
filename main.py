@@ -157,13 +157,33 @@ async def get_tables():
 async def get_table_columns(table_name: str):
     async with engine.connect() as conn:
         tables = await conn.run_sync(get_table_names)
-    return tables[table_name].columns.keys()
+        if table_name not in tables:
+            raise HTTPException(
+                status_code=404, detail=f"Таблица '{table_name}' не найдена"
+            )
+
+    columns = tables[table_name].columns.keys()
+
+    return columns
 
 
 @app.get("/api/tables/{table_name}/columns/{column_name}", tags=["Database"])
 async def get_table_column_data(table_name: str, column_name: str):
     async with engine.connect() as conn:
+        tables = await conn.run_sync(get_table_names)
+        if table_name not in tables:
+            raise HTTPException(
+                status_code=404, detail=f"Таблица '{table_name}' не найдена"
+            )
+        elif column_name not in tables[table_name].columns:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Столбец '{column_name}' не найден в таблице '{table_name}'",
+            )
+
         result = await conn.execute(text(f"SELECT {column_name} FROM {table_name}"))
-        # Преобразуем каждую строку в словарь с именем колонки в качестве ключа
-        items = [getattr(row, column_name) for row in result]
-        return items
+
+    # Преобразуем каждую строку в словарь с именем колонки в качестве ключа
+    items = [getattr(row, column_name) for row in result]
+
+    return items
