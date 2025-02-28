@@ -149,7 +149,7 @@ class CteModel(Base):
     id = Column(
         Integer, primary_key=True, autoincrement=True, unique=True, nullable=False
     )
-    name = Column(String(255), nullable=False)
+    cte_name = Column(String(255), nullable=False)
     link = Column(String(255), nullable=False)
     kpgz_id = Column(Integer, ForeignKey("kpgz.id"), nullable=False)
 
