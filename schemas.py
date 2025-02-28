@@ -8,9 +8,19 @@ class UserBaseSchema(BaseModel):
     email: EmailStr
 
 
+class UserAuthorizedSchema(BaseModel):
+    id: str
+    full_name: str
+    email: EmailStr
+
+
 class UserLoginSchema(BaseModel):
     email: str
     password: str
+
+
+class UserAuthSchema(BaseModel):
+    token: str
 
 
 class UserCreateSchema(UserBaseSchema):

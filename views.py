@@ -21,6 +21,11 @@ async def create_user(db: SessionDep, user: UserCreateSchema):
     return new_user
 
 
+async def get_user_by_token(db: SessionDep, token: str):
+    result = await db.execute(select(UserModel).where(UserModel.token == token))
+    return result.scalars().first()
+
+
 async def get_user_by_email(db: SessionDep, email: str):
     result = await db.execute(select(UserModel).where(UserModel.email == email))
     return result.scalars().first()

@@ -19,9 +19,10 @@ class UserModel(Base):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    full_name = Column(String, unique=True)
+    full_name = Column(String)
     email = Column(String, unique=True, index=True)
     password = Column(String)
+    token = Column(String, unique=True)
 
     # one-to-many relationship with Dashboards
     dashboards = relationship(

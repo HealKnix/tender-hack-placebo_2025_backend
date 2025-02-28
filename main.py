@@ -12,12 +12,15 @@ from schemas import (
     UserReadSchema,
     UserUpdateSchema,
     UserLoginSchema,
+    UserAuthSchema,
+    UserAuthorizedSchema,
     DeepSeekSchema,
     DeepSeekPromtSchema,
 )
 from views import (
     create_user,
     get_user_by_email,
+    get_user_by_token,
     get_user,
     get_users,
     update_user,
@@ -45,17 +48,27 @@ if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
 
 
+# ####################################################################
+
+
 @app.post("/api/register", response_model=UserReadSchema)
 async def register(user: UserCreateSchema, db: SessionDep):
     db_user = await get_user_by_email(db, email=user.email)
     if db_user:
-        raise HTTPException(status_code=400, detail="Имя пользователя уже занято")
-    user.password = get_password_hash(user.password)
+        raise HTTPException(status_code=400, detail="Почта уже зарегистрирована")
+
     new_user = await create_user(db, user)
+    new_user.password = get_password_hash(user.password)
+    new_user.token = create_access_token(data={"sub": new_user.id})
+
+    db.add(new_user)
+    await db.commit()
+    await db.refresh(new_user)
+
     return new_user
 
 
-@app.post("/api/token")
+@app.post("/api/login")
 async def login(form_data: UserLoginSchema, db: SessionDep):
     user = await get_user_by_email(db, email=form_data.email)
     if not user:
@@ -66,8 +79,26 @@ async def login(form_data: UserLoginSchema, db: SessionDep):
         raise HTTPException(
             status_code=400, detail="Неверное имя пользователя или пароль"
         )
-    access_token = create_access_token(data={"sub": user.full_name})
-    return {"access_token": access_token, "token_type": "bearer"}
+    # access_token = create_access_token(data={"sub": user.full_name})
+    return {"access_token": user.token, "token_type": "bearer"}
+
+
+@app.post("/api/auth")
+async def auth(form_data: UserAuthSchema, db: SessionDep):
+    user = await get_user_by_token(db, token=form_data.token)
+    if not user:
+        raise HTTPException(status_code=400, detail="У вас нет доступа к этой странице")
+
+    print(user.dashboards)
+
+    return {
+        "id": user.id,
+        "full_name": user.full_name,
+        "email": user.email,
+    }
+
+
+# ####################################################################
 
 
 @app.get("/api/users", response_model=list[UserReadSchema], tags=["Users"])
@@ -100,6 +131,12 @@ async def delete_user_endpoint(user_id: int, db: SessionDep):
     if not result:
         raise HTTPException(status_code=404, detail="Пользователь не найден")
     return {"detail": "Пользователь удалён"}
+
+
+# ####################################################################
+
+
+# ####################################################################
 
 
 @app.post("/api/deepseek", response_model=DeepSeekSchema, tags=["DeepSeek"])
