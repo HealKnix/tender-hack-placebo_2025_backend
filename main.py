@@ -89,8 +89,6 @@ async def auth(form_data: UserAuthSchema, db: SessionDep):
     if not user:
         raise HTTPException(status_code=400, detail="У вас нет доступа к этой странице")
 
-    print(user.dashboards)
-
     return {
         "id": user.id,
         "full_name": user.full_name,
