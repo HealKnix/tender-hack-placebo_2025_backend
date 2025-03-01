@@ -31,7 +31,7 @@ class UserModel(Base):
     dashboards = relationship("DashboardModel", back_populates="owner", uselist=True)
     # one-to-many relationship with Dashboards
     dashboard_subscriptions = relationship(
-        "DashboardSubscriptionModel", back_populates="user", uselist=True
+        "DashboardSubscriptionModel", back_populates="users", uselist=True
     )
 
 

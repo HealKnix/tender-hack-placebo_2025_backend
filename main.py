@@ -182,7 +182,7 @@ async def deepseek(secret_key: str, deep: DeepSeekPromtSchema):
     ):
         raise HTTPException(status_code=401, detail="Incorrect secret key")
 
-    url = "http://localhost/api/generate/"
+    url = "http://localhost:11434/api/generate/"
 
     json_body = {
         "model": "deepseek-r1:32b",
