@@ -2,7 +2,7 @@ from passlib.context import CryptContext
 from jose import JWTError, jwt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
-from views import get_user_by_email
+import views.users as user_views
 from database import SessionDep
 
 SECRET_KEY = "$$#&><?><&*@#$%^&*()_+"
@@ -47,7 +47,7 @@ async def get_current_user(db: SessionDep, token: str = Depends(oauth2_scheme)):
             raise credentials_exception
     except JWTError:
         raise credentials_exception
-    user = await get_user_by_email(db, username=username)
+    user = await user_views.get_by_email(db, username=username)
     if user is None:
         raise credentials_exception
     return user

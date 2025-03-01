@@ -13,19 +13,13 @@ from schemas import (
     UserUpdateSchema,
     UserLoginSchema,
     UserAuthSchema,
-    UserAuthorizedSchema,
     DeepSeekSchema,
     DeepSeekPromtSchema,
 )
-from views import (
-    create_user,
-    get_user_by_email,
-    get_user_by_token,
-    get_user,
-    get_users,
-    update_user,
-    delete_user,
-)
+import views.users as user_views
+import views.dashboards as dashboard_views
+import views.widgets as widget_views
+import views.utils as util_views
 from auth import (
     pwd_context,
     get_password_hash,
@@ -53,11 +47,11 @@ if __name__ == "__main__":
 
 @app.post("/api/register", response_model=UserReadSchema)
 async def register(user: UserCreateSchema, db: SessionDep):
-    db_user = await get_user_by_email(db, email=user.email)
+    db_user = await user_views.get_by_email(db, email=user.email)
     if db_user:
         raise HTTPException(status_code=400, detail="Почта уже зарегистрирована")
 
-    new_user = await create_user(db, user)
+    new_user = await user_views.create(db, user)
     new_user.password = get_password_hash(user.password)
     new_user.token = create_access_token(data={"sub": new_user.id})
 
@@ -70,7 +64,7 @@ async def register(user: UserCreateSchema, db: SessionDep):
 
 @app.post("/api/login")
 async def login(form_data: UserLoginSchema, db: SessionDep):
-    user = await get_user_by_email(db, email=form_data.email)
+    user = await user_views.get_by_email(db, email=form_data.email)
     if not user:
         raise HTTPException(
             status_code=400, detail="Неверное имя пользователя или пароль"
@@ -85,7 +79,7 @@ async def login(form_data: UserLoginSchema, db: SessionDep):
 
 @app.post("/api/auth")
 async def auth(form_data: UserAuthSchema, db: SessionDep):
-    user = await get_user_by_token(db, token=form_data.token)
+    user = await user_views.get_by_token(db, token=form_data.token)
     if not user:
         raise HTTPException(status_code=400, detail="У вас нет доступа к этой странице")
 
@@ -101,13 +95,13 @@ async def auth(form_data: UserAuthSchema, db: SessionDep):
 
 @app.get("/api/users", response_model=list[UserReadSchema], tags=["Users"])
 async def read_users(db: SessionDep, skip: int = 0, limit: int = 100):
-    users = await get_users(db, skip=skip, limit=limit)
+    users = await user_views.get_all(db, skip=skip, limit=limit)
     return users
 
 
 @app.get("/api/users/{user_id}", response_model=UserReadSchema, tags=["Users"])
 async def read_user(user_id: int, db: SessionDep):
-    user = await get_user(db, user_id)
+    user = await user_views.get_by_id(db, user_id)
     if not user:
         raise HTTPException(status_code=404, detail="Пользователь не найден")
     return user
@@ -117,7 +111,7 @@ async def read_user(user_id: int, db: SessionDep):
 async def update_user_endpoint(
     user_id: int, user_update: UserUpdateSchema, db: SessionDep
 ):
-    user = await update_user(db, user_id, user_update)
+    user = await user_views.update_by_id(db, user_id, user_update)
     if not user:
         raise HTTPException(status_code=404, detail="Пользователь не найден")
     return user
@@ -125,13 +119,54 @@ async def update_user_endpoint(
 
 @app.delete("/api/users/{user_id}", response_model=UserReadSchema, tags=["Users"])
 async def delete_user_endpoint(user_id: int, db: SessionDep):
-    result = await delete_user(db, user_id)
+    result = await user_views.delete_by_id(db, user_id)
     if not result:
         raise HTTPException(status_code=404, detail="Пользователь не найден")
     return {"detail": "Пользователь удалён"}
 
 
 # ####################################################################
+
+
+@app.get("/api/dashbboards", tags=["Dashboard"])
+async def get_dashboards(db: SessionDep):
+    return await dashboard_views.get_all(db)
+
+
+@app.get("/api/dashbboards/user/{user_id}", tags=["Dashboard"])
+async def get_dashboards(user_id: int, db: SessionDep):
+    return await dashboard_views.get_by_user_id(db, user_id)
+
+
+# ####################################################################
+
+
+@app.get("/api/widgets", tags=["Widgets"])
+async def get_widgets(db: SessionDep):
+    return await widget_views.get_all(db)
+
+
+@app.get("/api/widgets/dashboard/{dashboard_id}", tags=["Widgets"])
+async def get_widgets_by_dashboard_id(dashboard_id: int, db: SessionDep):
+    return await widget_views.get_by_dashboard_id(db, dashboard_id)
+
+
+# ####################################################################
+
+
+@app.get("/api/utils/herfindahl_hirschman_index/{supplier_id}", tags=["Utils"])
+async def get_herfindahl_hirschman_rate(supplier_id: int, db: SessionDep):
+    return await util_views.herfindahl_hirschman_rate(supplier_id, db)
+
+
+@app.get("/api/utils/suppliers_success_rate", tags=["Utils"])
+async def get_suppliers_success_rate(db: SessionDep):
+    return await util_views.suppliers_success_rate(db)
+
+
+@app.get("/api/utils/price_reduction_by_kpgz_categories_rate", tags=["Utils"])
+async def get_price_reduction_by_kpgz_categories_rate(db: SessionDep):
+    return await util_views.price_reduction_by_kpgz_categories_rate(db)
 
 
 # ####################################################################
@@ -203,22 +238,26 @@ async def get_table_columns(table_name: str):
 
 
 @app.get("/api/tables/{table_name}/columns/{column_name}", tags=["Database"])
-async def get_table_column_data(table_name: str, column_name: str):
+async def get_table_column_data(table_name: str, column_names: str):
     async with engine.connect() as conn:
         tables = await conn.run_sync(get_table_names)
         if table_name not in tables:
             raise HTTPException(
                 status_code=404, detail=f"Таблица '{table_name}' не найдена"
             )
-        elif column_name not in tables[table_name].columns:
-            raise HTTPException(
-                status_code=404,
-                detail=f"Столбец '{column_name}' не найден в таблице '{table_name}'",
-            )
+        column_name_list = [x.strip() for x in column_names.split(",")]
+        for column_name in column_name_list:
+            if column_name not in tables[table_name].columns:
+                raise HTTPException(
+                    status_code=404,
+                    detail=f"Столбец '{column_name}' не найден в таблице '{table_name}'",
+                )
 
-        result = await conn.execute(text(f"SELECT {column_name} FROM {table_name}"))
+        result = await conn.execute(text(f"SELECT {column_names} FROM {table_name}"))
 
     # Преобразуем каждую строку в словарь с именем колонки в качестве ключа
-    items = [getattr(row, column_name) for row in result]
+    items = [
+        {column_name_list[i]: row for i, row in enumerate(column)} for column in result
+    ]
 
     return items

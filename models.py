@@ -41,27 +41,25 @@ class DashboardModel(Base):
     updated_at = Column(DateTime, onupdate=datetime.utcnow)
 
     # relationship with User
-    owner = relationship("UserModel", back_populates="dashboards")
+    owner = relationship("UserModel", back_populates="dashboards", uselist=False)
     # one-to-many relationship with Reports
-    reports = relationship(
-        "ReportModel", back_populates="dashboard", cascade="all, delete-orphan"
-    )
+    reports = relationship("ReportModel", back_populates="dashboard", uselist=True)
     # one-to-many relationship with Widgets
-    widgets = relationship("WidgetModel", back_populates="dashboard")
+    widgets = relationship("WidgetModel", back_populates="dashboard", uselist=True)
 
 
 class WidgetModel(Base):
     __tablename__ = "widgets"
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    title = Column(String, unique=True)
+    title = Column(String)
     description = Column(Text)
     dashboard_id = Column(Integer, ForeignKey("dashboards.id"))
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, onupdate=datetime.utcnow)
 
     # relationship with Dashboard
-    dashboard = relationship("DashboardModel", back_populates="widgets")
+    dashboard = relationship("DashboardModel", back_populates="widgets", uselist=False)
 
 
 class ReportStatusModel(Base):
@@ -86,7 +84,7 @@ class ReportModel(Base):
     updated_at = Column(DateTime, onupdate=datetime.utcnow)
 
     # relationship with Dashboard
-    dashboard = relationship("DashboardModel", back_populates="reports")
+    dashboard = relationship("DashboardModel", back_populates="reports", uselist=False)
 
 
 # ##############################################################
@@ -100,7 +98,7 @@ class KpgzModel(Base):
     name = Column(String(255), nullable=False)
 
     # Один к многим: kpgz -> cte
-    cte_list = relationship("CteModel", back_populates="kpgz")
+    cte_list = relationship("CteModel", back_populates="kpgz", uselist=True)
 
 
 # Таблица "ks"
@@ -110,21 +108,24 @@ class KsModel(Base):
     link = Column(String(255), nullable=False)
     start_ks = Column(DateTime, nullable=False)
     end_ks = Column(DateTime, nullable=False)
-    start_price = Column(Numeric(10, 0), nullable=False)
-    end_price = Column(Numeric(10, 0), nullable=False)
+    start_price = Column(Numeric(18, 2), nullable=False)
+    end_price = Column(Numeric(18, 2), nullable=False)
     customer_id = Column(Integer, ForeignKey("customer.id"), nullable=False)
     winner_id = Column(Integer, ForeignKey("supplier.id"), nullable=False)
 
     # Связь с таблицей customer
-    customer = relationship("CustomerModel", back_populates="ks_list")
+    customer = relationship("CustomerModel", back_populates="ks_list", uselist=False)
     # Связь с таблицей supplier (победитель)
     supplier_winner = relationship(
-        "SupplierModel", back_populates="ks_list", foreign_keys=[winner_id]
+        "SupplierModel",
+        back_populates="ks_list",
+        foreign_keys=[winner_id],
+        uselist=False,
     )
     # Связь с таблицей order
-    orders = relationship("OrderModel", back_populates="ks")
+    orders = relationship("OrderModel", back_populates="ks", uselist=True)
     # Связь с таблицей participant
-    participants = relationship("ParticipantModel", back_populates="ks")
+    participants = relationship("ParticipantModel", back_populates="ks", uselist=True)
 
 
 # Таблица "customer"
@@ -138,9 +139,9 @@ class CustomerModel(Base):
     region_id = Column(Integer, ForeignKey("region.id"), nullable=False)
 
     # Связь с таблицей region
-    region = relationship("RegionModel", back_populates="customers")
+    region = relationship("RegionModel", back_populates="customers", uselist=False)
     # Связь с таблицей ks
-    ks_list = relationship("KsModel", back_populates="customer")
+    ks_list = relationship("KsModel", back_populates="customer", uselist=True)
 
 
 # Таблица "cte"
@@ -149,14 +150,14 @@ class CteModel(Base):
     id = Column(
         Integer, primary_key=True, autoincrement=True, unique=True, nullable=False
     )
-    cte_name = Column(String(255), nullable=False)
-    link = Column(String(255), nullable=False)
+    cte_name = Column(String(1024), nullable=False)
+    link = Column(String(255), nullable=True)
     kpgz_id = Column(Integer, ForeignKey("kpgz.id"), nullable=False)
 
     # Связь с таблицей kpgz
-    kpgz = relationship("KpgzModel", back_populates="cte_list")
+    kpgz = relationship("KpgzModel", back_populates="cte_list", uselist=False)
     # Связь с таблицей order
-    orders = relationship("OrderModel", back_populates="cte")
+    orders = relationship("OrderModel", back_populates="cte", uselist=True)
 
 
 # Таблица "order"
@@ -167,15 +168,15 @@ class OrderModel(Base):
     )
     id_cte = Column(Integer, ForeignKey("cte.id"), nullable=False)
     id_ks = Column(Integer, ForeignKey("ks.id_ks"), nullable=False)
-    count = Column(Integer, nullable=False)
-    price = Column(Numeric(10, 0), nullable=False)
+    count = Column(Numeric(18, 2), nullable=False)
+    price = Column(Numeric(18, 2), nullable=False)
     oferta_start = Column(DateTime, nullable=False)
     oferta_end = Column(DateTime, nullable=False)
-    oferta_price = Column(Numeric(10, 0), nullable=False)
+    oferta_price = Column(Numeric(18, 2), nullable=False)
 
     # Связь с таблицами cte и ks
-    cte = relationship("CteModel", back_populates="orders")
-    ks = relationship("KsModel", back_populates="orders")
+    cte = relationship("CteModel", back_populates="orders", uselist=False)
+    ks = relationship("KsModel", back_populates="orders", uselist=False)
 
 
 # Таблица "supplier"
@@ -189,11 +190,13 @@ class SupplierModel(Base):
     region_id = Column(Integer, ForeignKey("region.id"), nullable=False)
 
     # Связь с таблицей region
-    region = relationship("RegionModel", back_populates="suppliers")
+    region = relationship("RegionModel", back_populates="suppliers", uselist=False)
     # Связь с таблицей ks (как победитель торгов)
-    ks_list = relationship("KsModel", back_populates="supplier_winner")
+    ks_list = relationship("KsModel", back_populates="supplier_winner", uselist=True)
     # Связь с таблицей participant
-    participants = relationship("ParticipantModel", back_populates="supplier")
+    participants = relationship(
+        "ParticipantModel", back_populates="supplier", uselist=True
+    )
 
 
 # Таблица "participant"
@@ -206,8 +209,10 @@ class ParticipantModel(Base):
     id_participant = Column(Integer, ForeignKey("supplier.id"), nullable=False)
 
     # Связи с таблицами ks и supplier
-    ks = relationship("KsModel", back_populates="participants")
-    supplier = relationship("SupplierModel", back_populates="participants")
+    ks = relationship("KsModel", back_populates="participants", uselist=False)
+    supplier = relationship(
+        "SupplierModel", back_populates="participants", uselist=False
+    )
 
 
 # Таблица "region"
@@ -219,5 +224,5 @@ class RegionModel(Base):
     name = Column(String(255), nullable=False)
 
     # Связи с таблицами customer и supplier
-    customers = relationship("CustomerModel", back_populates="region")
-    suppliers = relationship("SupplierModel", back_populates="region")
+    customers = relationship("CustomerModel", back_populates="region", uselist=True)
+    suppliers = relationship("SupplierModel", back_populates="region", uselist=True)
