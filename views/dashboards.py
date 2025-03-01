@@ -25,8 +25,15 @@ async def create(db: SessionDep, dashboard):
     return dashboard
 
 
-async def update_by_id(db: SessionDep, dashboard_id: int, dashboard: DashboardModel):
-    pass
+async def update_by_id(db: SessionDep, dashboard_id: int, dashboard):
+    dashboard = await get_by_id(db, dashboard_id)
+    if not dashboard:
+        return None
+    for field, value in dashboard.items():
+        setattr(dashboard, field, value)
+    await db.commit()
+    await db.refresh(dashboard)
+    return dashboard
 
 
 async def delete_by_id(db: SessionDep, dashboard_id: int):

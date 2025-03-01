@@ -2,12 +2,12 @@ from sqlalchemy import select
 from passlib.context import CryptContext
 from database import SessionDep
 from models import UserModel
-from schemas import UserCreateSchema, UserUpdateSchema
+from schemas.users import Create, Update
 
 pwd_context = CryptContext(schemes=["sha256_crypt"], deprecated="auto")
 
 
-async def create(db: SessionDep, user: UserCreateSchema):
+async def create(db: SessionDep, user: Create):
     new_user = UserModel(
         full_name=user.full_name,
         email=user.email,
@@ -41,7 +41,7 @@ async def get_all(db: SessionDep, skip: int = 0, limit: int = 100):
     return result.scalars()
 
 
-async def update_by_id(db: SessionDep, user_id: int, user_update: UserUpdateSchema):
+async def update_by_id(db: SessionDep, user_id: int, user_update: Update):
     user = await get_by_id(db, user_id)
     if not user:
         return None

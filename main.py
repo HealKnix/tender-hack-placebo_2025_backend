@@ -7,25 +7,16 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 
 from database import SessionDep, engine
-from schemas import (
-    UserCreateSchema,
-    UserReadSchema,
-    UserUpdateSchema,
-    UserLoginSchema,
-    UserAuthSchema,
-    DeepSeekSchema,
-    DeepSeekPromtSchema,
-)
+
+import schemas.users as UserSchema
+import schemas.deepseek as DeepseekSchema
+
 import views.users as user_views
 import views.dashboards as dashboard_views
 import views.widgets as widget_views
 import views.utils as util_views
-from auth import (
-    pwd_context,
-    get_password_hash,
-    authenticate_user,
-    create_access_token,
-)
+
+import views.auth as auth_views
 
 app = FastAPI()
 
@@ -45,16 +36,16 @@ if __name__ == "__main__":
 # ####################################################################
 
 
-@app.post("/api/register", response_model=UserReadSchema)
-async def register(user: UserCreateSchema, db: SessionDep):
+@app.post("/api/register", response_model=UserSchema.Read)
+async def register(user: UserSchema.Create, db: SessionDep):
     db_user = await user_views.get_by_email(db, email=user.email)
     if db_user:
         raise HTTPException(status_code=400, detail="Почта уже зарегистрирована")
 
     new_user = await user_views.create(db, user)
     new_user.supplier_id = new_user.id
-    new_user.password = get_password_hash(user.password)
-    new_user.token = create_access_token(data={"sub": new_user.id})
+    new_user.password = auth_views.get_password_hash(user.password)
+    new_user.token = auth_views.create_access_token(data={"sub": new_user.id})
 
     db.add(new_user)
     await db.commit()
@@ -64,13 +55,13 @@ async def register(user: UserCreateSchema, db: SessionDep):
 
 
 @app.post("/api/login")
-async def login(form_data: UserLoginSchema, db: SessionDep):
+async def login(form_data: UserSchema.Login, db: SessionDep):
     user = await user_views.get_by_email(db, email=form_data.email)
     if not user:
         raise HTTPException(
             status_code=400, detail="Неверное имя пользователя или пароль"
         )
-    if not authenticate_user(form_data.password, user.password):
+    if not auth_views.authenticate_user(form_data.password, user.password):
         raise HTTPException(
             status_code=400, detail="Неверное имя пользователя или пароль"
         )
@@ -79,7 +70,7 @@ async def login(form_data: UserLoginSchema, db: SessionDep):
 
 
 @app.post("/api/auth")
-async def auth(form_data: UserAuthSchema, db: SessionDep):
+async def auth(form_data: UserSchema.Auth, db: SessionDep):
     user = await user_views.get_by_token(db, token=form_data.token)
     if not user:
         raise HTTPException(status_code=400, detail="У вас нет доступа к этой странице")
@@ -95,13 +86,13 @@ async def auth(form_data: UserAuthSchema, db: SessionDep):
 # ####################################################################
 
 
-@app.get("/api/users", response_model=list[UserReadSchema], tags=["Users"])
+@app.get("/api/users", response_model=list[UserSchema.Read], tags=["Users"])
 async def read_users(db: SessionDep, skip: int = 0, limit: int = 100):
     users = await user_views.get_all(db, skip=skip, limit=limit)
     return users
 
 
-@app.get("/api/users/{user_id}", response_model=UserReadSchema, tags=["Users"])
+@app.get("/api/users/{user_id}", response_model=UserSchema.Read, tags=["Users"])
 async def read_user(user_id: int, db: SessionDep):
     user = await user_views.get_by_id(db, user_id)
     if not user:
@@ -109,9 +100,9 @@ async def read_user(user_id: int, db: SessionDep):
     return user
 
 
-@app.put("/api/users/{user_id}", response_model=UserReadSchema, tags=["Users"])
+@app.put("/api/users/{user_id}", response_model=UserSchema.Read, tags=["Users"])
 async def update_user_endpoint(
-    user_id: int, user_update: UserUpdateSchema, db: SessionDep
+    user_id: int, user_update: UserSchema.Update, db: SessionDep
 ):
     user = await user_views.update_by_id(db, user_id, user_update)
     if not user:
@@ -119,7 +110,7 @@ async def update_user_endpoint(
     return user
 
 
-@app.delete("/api/users/{user_id}", response_model=UserReadSchema, tags=["Users"])
+@app.delete("/api/users/{user_id}", response_model=UserSchema.Read, tags=["Users"])
 async def delete_user_endpoint(user_id: int, db: SessionDep):
     result = await user_views.delete_by_id(db, user_id)
     if not result:
@@ -179,9 +170,9 @@ async def get_price_reduction_by_kpgz_categories_rate(db: SessionDep):
 # ####################################################################
 
 
-@app.post("/api/deepseek", response_model=DeepSeekSchema, tags=["DeepSeek"])
-async def deepseek(secret_key: str, deep: DeepSeekPromtSchema):
-    if not pwd_context.verify(
+@app.post("/api/deepseek", response_model=DeepseekSchema.Message, tags=["DeepSeek"])
+async def deepseek(secret_key: str, deep: DeepseekSchema.Promt):
+    if not auth_views.pwd_context.verify(
         secret_key,
         "$5$rounds=535000$U/n.eV30oSlzqJ7.$rRhZQqSHGhH9HQHOPGQco1peH7iQUM4Yh6t4ibN/uZ8",
     ):
@@ -225,9 +216,9 @@ def get_table_names(sync_conn):
 async def get_properties():
     async with engine.connect() as conn:
         tables = await conn.run_sync(get_table_names)
-        return [{table: tables.get(table).columns.keys()} for table in tables.keys()][
-            1:
-        ]
+        result = {{table: tables.get(table).columns.keys()} for table in tables.keys()}
+        del result["alembic_version"]
+        return result
 
 
 @app.get("/api/tables", tags=["Database"], response_model=list[str])
