@@ -1,4 +1,5 @@
 from sqlalchemy import (
+    Boolean,
     Column,
     Integer,
     String,
@@ -40,28 +41,102 @@ class DashboardModel(Base):
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     title = Column(String, unique=True)
-    description = Column(Text)
+    properties = Column(Text)
     owner_id = Column(Integer, ForeignKey("users.id"))
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, onupdate=datetime.utcnow)
 
+    filters = relationship(
+        "DashboardFilterModel", back_populates="dashboard", uselist=True
+    )
+    properties = relationship(
+        "DashboardPropetryModel", back_populates="dashboard", uselist=True
+    )
+    metrics = relationship(
+        "DashboardMetricModel", back_populates="dashboard", uselist=True
+    )
+    subscribers = relationship(
+        "DashboardSubscriptionModel", back_populates="dashboard", uselist=True
+    )
     # relationship with User
-    owner = relationship("UserModel", back_populates="dashboards", uselist=False)
+    owner = relationship(
+        "UserModel", back_populates="dashboards", foreign_keys=[owner_id], uselist=False
+    )
     # one-to-many relationship with Reports
     reports = relationship("ReportModel", back_populates="dashboard", uselist=True)
     # one-to-many relationship with Widgets
     widgets = relationship("WidgetModel", back_populates="dashboard", uselist=True)
 
 
+class DashboardFilterModel(Base):
+    __tablename__ = "dashboard_filters"
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    dashboard_id = Column(Integer, ForeignKey("dashboards.id"))
+    name = Column(String(255))
+    value = Column(String(255))
+
+    dashboard = relationship(
+        "DashboardModel",
+        back_populates="filters",
+        foreign_keys=[dashboard_id],
+        uselist=False,
+    )
+
+
+class DashboardPropetryModel(Base):
+    __tablename__ = "dashboard_properties"
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    dashboard_id = Column(Integer, ForeignKey("dashboards.id"))
+    table_name = Column(String(255))
+    column_name = Column(String(255))
+    type = Column(String(255))
+
+    dashboard = relationship(
+        "DashboardModel",
+        back_populates="properties",
+        foreign_keys=[dashboard_id],
+        uselist=False,
+    )
+
+
+class DashboardMetricModel(Base):
+    __tablename__ = "dashboard_metrics"
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    dashboard_id = Column(Integer, ForeignKey("dashboards.id"))
+    name = Column(String(255))
+    value = Column(Numeric(18, 2))
+    unit = Column(String(255))
+
+    dashboard = relationship(
+        "DashboardModel",
+        back_populates="metrics",
+        foreign_keys=[dashboard_id],
+        uselist=False,
+    )
+
+
 class DashboardSubscriptionModel(Base):
     __tablename__ = "dashboard_subscriptions"
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    dashboard_id = Column(Integer, ForeignKey("dashboards.id"))
     user_id = Column(Integer, ForeignKey("users.id"))
     schedule_day = Column(Integer)
 
+    dashboard = relationship(
+        "DashboardModel",
+        back_populates="subscribers",
+        foreign_keys=[dashboard_id],
+        uselist=False,
+    )
     users = relationship(
-        "UserModel", back_populates="dashboard_subscriptions", uselist=True
+        "UserModel",
+        back_populates="dashboard_subscriptions",
+        foreign_keys=[user_id],
+        uselist=True,
     )
 
 
@@ -69,8 +144,13 @@ class WidgetModel(Base):
     __tablename__ = "widgets"
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    type = Column(String(255))
+    index = Column(Integer)
+    data_switch = Column(Boolean)
+    smooth = Column(Boolean)
+    min = Column(Numeric(18, 2))
+    max = Column(Numeric(18, 2))
     title = Column(String)
-    description = Column(Text)
     dashboard_id = Column(Integer, ForeignKey("dashboards.id"))
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, onupdate=datetime.utcnow)

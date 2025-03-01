@@ -35,7 +35,7 @@ async def delete_by_id(db: SessionDep, dashboard_id: int):
     return dashboard
 
 
-async def get_by_user_id(db: SessionDep, user_id: int):
+async def get_by_owner_id(db: SessionDep, user_id: int):
     query = select(DashboardModel).where(DashboardModel.owner_id == user_id)
     result = await db.execute(query)
     return result.scalars().all()

@@ -135,9 +135,9 @@ async def get_dashboards(db: SessionDep):
     return await dashboard_views.get_all(db)
 
 
-@app.get("/api/dashbboards/user/{user_id}", tags=["Dashboard"])
-async def get_dashboards_by_user_id(user_id: int, db: SessionDep):
-    return await dashboard_views.get_by_user_id(db, user_id)
+@app.get("/api/dashbboards/owner/{owner_id}", tags=["Dashboard"])
+async def get_dashboards_by_owner_id(owner_id: int, db: SessionDep):
+    return await dashboard_views.get_by_owner_id(db, owner_id)
 
 
 # ####################################################################
