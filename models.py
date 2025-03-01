@@ -40,7 +40,7 @@ class DashboardModel(Base):
     __tablename__ = "dashboards"
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    title = Column(String, unique=True)
+    title = Column(String)
     owner_id = Column(Integer, ForeignKey("users.id"))
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, onupdate=datetime.utcnow)
@@ -51,7 +51,6 @@ class DashboardModel(Base):
     properties = relationship(
         "DashboardPropertyModel",
         back_populates="dashboard",
-        foreign_keys=[id],
         uselist=True,
     )
     metrics = relationship(
