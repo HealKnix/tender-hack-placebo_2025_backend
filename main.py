@@ -121,17 +121,17 @@ async def delete_user_endpoint(user_id: int, db: SessionDep):
 # ####################################################################
 
 
-@app.get("/api/dashbboards", tags=["Dashboard"])
+@app.get("/api/dashboards", tags=["Dashboard"])
 async def get_dashboards(db: SessionDep):
     return await dashboard_views.get_all(db)
 
 
-@app.post("/api/dashbboards", tags=["Dashboard"])
+@app.post("/api/dashboards", tags=["Dashboard"])
 async def create_dashboard(dashboard, db: SessionDep):
     return await dashboard_views.create(db, dashboard)
 
 
-@app.get("/api/dashbboards/owner/{owner_id}", tags=["Dashboard"])
+@app.get("/api/dashboards/owner/{owner_id}", tags=["Dashboard"])
 async def get_dashboards_by_owner_id(owner_id: int, db: SessionDep):
     return await dashboard_views.get_by_owner_id(db, owner_id)
 
