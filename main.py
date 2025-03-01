@@ -52,6 +52,7 @@ async def register(user: UserCreateSchema, db: SessionDep):
         raise HTTPException(status_code=400, detail="Почта уже зарегистрирована")
 
     new_user = await user_views.create(db, user)
+    new_user.supplier_id = new_user.id
     new_user.password = get_password_hash(user.password)
     new_user.token = create_access_token(data={"sub": new_user.id})
 
@@ -85,6 +86,7 @@ async def auth(form_data: UserAuthSchema, db: SessionDep):
 
     return {
         "id": user.id,
+        "supplier_id": user.supplier_id,
         "full_name": user.full_name,
         "email": user.email,
     }
@@ -134,7 +136,7 @@ async def get_dashboards(db: SessionDep):
 
 
 @app.get("/api/dashbboards/user/{user_id}", tags=["Dashboard"])
-async def get_dashboards(user_id: int, db: SessionDep):
+async def get_dashboards_by_user_id(user_id: int, db: SessionDep):
     return await dashboard_views.get_by_user_id(db, user_id)
 
 

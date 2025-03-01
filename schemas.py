@@ -29,6 +29,7 @@ class UserUpdateSchema(BaseModel):
 
 class UserReadSchema(UserBaseSchema):
     id: int
+    supplier_id: int
 
     class Config:
         from_attributes = True
