@@ -217,9 +217,9 @@ def get_table_names(sync_conn):
 async def get_properties():
     async with engine.connect() as conn:
         tables = await conn.run_sync(get_table_names)
-        result = {{table: tables.get(table).columns.keys()} for table in tables.keys()}
-        del result["alembic_version"]
-        return result
+        return [{table: tables.get(table).columns.keys()} for table in tables.keys()][
+            1:
+        ]
 
 
 @app.get("/api/tables", tags=["Database"], response_model=list[str])
