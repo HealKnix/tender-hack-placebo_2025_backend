@@ -15,10 +15,13 @@ async def get_all(db: SessionDep):
     return result.scalars().all()
 
 
-async def create(db: SessionDep, dashboard: DashboardModel):
-    db.add(dashboard)
+async def create(db: SessionDep, dashboard):
+    new_dashboard = DashboardModel(**dashboard)
+
+    db.add(new_dashboard)
     await db.commit()
-    await db.refresh(dashboard)
+    await db.refresh(new_dashboard)
+
     return dashboard
 
 

@@ -124,7 +124,8 @@ class DashboardSubscriptionModel(Base):
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     dashboard_id = Column(Integer, ForeignKey("dashboards.id"))
     user_id = Column(Integer, ForeignKey("users.id"))
-    schedule_day = Column(Integer)
+    schedule_time = Column(DateTime)
+    schedule_type = Column(String(255))
 
     dashboard = relationship(
         "DashboardModel",

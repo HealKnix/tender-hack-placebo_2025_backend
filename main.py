@@ -135,6 +135,11 @@ async def get_dashboards(db: SessionDep):
     return await dashboard_views.get_all(db)
 
 
+@app.post("/api/dashbboards", tags=["Dashboard"])
+async def create_dashboard(dashboard, db: SessionDep):
+    return await dashboard_views.create(db, dashboard)
+
+
 @app.get("/api/dashbboards/owner/{owner_id}", tags=["Dashboard"])
 async def get_dashboards_by_owner_id(owner_id: int, db: SessionDep):
     return await dashboard_views.get_by_owner_id(db, owner_id)
@@ -214,6 +219,15 @@ def get_table_names(sync_conn):
     # Делаем рефлексию, чтобы получить список таблиц
     metadata.reflect(bind=sync_conn)
     return metadata.tables
+
+
+@app.get("/api/properties", tags=["Database"])
+async def get_properties():
+    async with engine.connect() as conn:
+        tables = await conn.run_sync(get_table_names)
+        return [{table: tables.get(table).columns.keys()} for table in tables.keys()][
+            1:
+        ]
 
 
 @app.get("/api/tables", tags=["Database"], response_model=list[str])
