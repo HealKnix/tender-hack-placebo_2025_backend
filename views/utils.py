@@ -20,11 +20,11 @@ SELECT
     COUNT(ks.id_ks) AS num_orders,
     SUM(ks.end_price) AS total_value
 FROM 
-    supplier s
+    suppliers s
 JOIN 
     ks ON s.id = ks.winner_id
 JOIN 
-    customer c ON ks.customer_id = c.id
+    customers c ON ks.customer_id = c.id
 WHERE 
     s.id = {supplier_id}  -- Здесь подставляется ID интересующего поставщика
 GROUP BY 
@@ -90,11 +90,11 @@ SELECT
     COUNT(DISTINCT ks.id_ks) * 100.0 / COUNT(DISTINCT p.id_ks) AS win_rate_percent,
     AVG((ks.start_price - ks.end_price) / ks.start_price * 100) AS avg_price_reduction_percent
 FROM 
-    supplier s
+    suppliers s
 JOIN 
-    region r ON r.id = s.region_id
+    regions r ON r.id = s.region_id
 LEFT JOIN 
-    participant p ON p.id_participant = s.id
+    participants p ON p.id_participant = s.id
 LEFT JOIN 
     ks ON ks.winner_id = s.id
 GROUP BY 
@@ -119,7 +119,7 @@ async def price_reduction_by_kpgz_categories_rate(db: SessionDep):
             """
 SELECT 
     k.id,
-    k.code_kpgz,
+    k.code,
     k.name AS kpgz_name,
     COUNT(ks.id_ks) AS total_sessions,
     AVG(ks.start_price) AS avg_start_price,
@@ -127,15 +127,15 @@ SELECT
     AVG(ks.start_price - ks.end_price) AS avg_price_reduction,
     100 - AVG((ks.start_price - ks.end_price) / ks.start_price * 100) AS avg_price_reduction_percent
 FROM 
-    kpgz k
+    kpgz_categories k
 JOIN 
     cte c ON c.kpgz_id = k.id
 JOIN 
-    "order" o ON o.id_cte = c.id
+    orders o ON o.id_cte = c.id
 JOIN 
     ks ON ks.id_ks = o.id_ks
 GROUP BY 
-    k.id, k.code_kpgz, k.name
+    k.id, k.code, k.name
 ORDER BY 
     avg_price_reduction_percent DESC;
             """
