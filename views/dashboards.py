@@ -18,6 +18,13 @@ async def get_all(db: SessionDep):
 async def create(db: SessionDep, dashboard):
     new_dashboard = DashboardModel(**dashboard)
 
+    for table, column in dashboard.properties:
+        new_dashboard.properties.append(
+            dashboard_id=new_dashboard.id,
+            table_name=table,
+            column_name=column,
+        )
+
     db.add(new_dashboard)
     await db.commit()
     await db.refresh(new_dashboard)

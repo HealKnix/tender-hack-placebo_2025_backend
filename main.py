@@ -9,6 +9,7 @@ from fastapi.responses import FileResponse
 from database import SessionDep, engine
 
 import schemas.users as UserSchema
+import schemas.dashboards as DashboardSchema
 import schemas.deepseek as DeepseekSchema
 
 import views.users as user_views
@@ -127,7 +128,7 @@ async def get_dashboards(db: SessionDep):
 
 
 @app.post("/api/dashboards", tags=["Dashboard"])
-async def create_dashboard(dashboard, db: SessionDep):
+async def create_dashboard(dashboard: DashboardSchema.Create, db: SessionDep):
     return await dashboard_views.create(db, dashboard)
 
 
