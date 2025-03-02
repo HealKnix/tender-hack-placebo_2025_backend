@@ -64,31 +64,31 @@ async def create(db: SessionDep, dashboard: DashboardSchema.Create):
             {
                 "id": 0,
                 **util_views.herfindahl_hirschman_rate(
-                    dashboard.owner_id, "2022-01-01", "2025-01-01"
+                    dashboard.owner_id, "2022-01-01", "2025-01-01", db
                 ),
             },
             {
                 "id": 1,
                 **util_views.metric_percentage_wins(
-                    dashboard.owner_id, "2022-01-01", "2025-01-01"
+                    dashboard.owner_id, "2022-01-01", "2025-01-01", db
                 ),
             },
             {
                 "id": 2,
                 **util_views.metric_avg_downgrade_cost(
-                    dashboard.owner_id, "2022-01-01", "2025-01-01"
+                    dashboard.owner_id, "2022-01-01", "2025-01-01", db
                 ),
             },
             {
                 "id": 3,
                 **util_views.metric_total_revenue(
-                    dashboard.owner_id, "2022-01-01", "2025-01-01"
+                    dashboard.owner_id, "2022-01-01", "2025-01-01", db
                 ),
             },
         ],
         "filters": [],
         "main_chart": util_views.revenue_trend_by_mounth(
-            dashboard.owner_id, "2022-01-01", "2025-01-01"
+            dashboard.owner_id, "2022-01-01", "2025-01-01", db
         ),
     }
 
@@ -142,31 +142,31 @@ async def get_by_owner_id(db: SessionDep, user_id: int):
                     {
                         "id": 0,
                         **util_views.herfindahl_hirschman_rate(
-                            user_id, "2022-01-01", "2025-01-01"
+                            user_id, "2022-01-01", "2025-01-01", db
                         ),
                     },
                     {
                         "id": 1,
                         **util_views.metric_percentage_wins(
-                            user_id, "2022-01-01", "2025-01-01"
+                            user_id, "2022-01-01", "2025-01-01", db
                         ),
                     },
                     {
                         "id": 2,
                         **util_views.metric_avg_downgrade_cost(
-                            user_id, "2022-01-01", "2025-01-01"
+                            user_id, "2022-01-01", "2025-01-01", db
                         ),
                     },
                     {
                         "id": 3,
                         **util_views.metric_total_revenue(
-                            user_id, "2022-01-01", "2025-01-01"
+                            user_id, "2022-01-01", "2025-01-01", db
                         ),
                     },
                 ],
                 "subscribers": subscribers,
                 "main_chart": util_views.revenue_trend_by_mounth(
-                    user_id, "2022-01-01", "2025-01-01"
+                    user_id, "2022-01-01", "2025-01-01", db
                 ),
             }
         )
