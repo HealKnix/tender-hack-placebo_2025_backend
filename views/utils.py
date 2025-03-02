@@ -418,8 +418,8 @@ async def revenue_trend_by_mounth(
             f"""
 WITH months AS (
   SELECT generate_series(
-    date_trunc('month', :start_date::date),
-    date_trunc('month', :end_date::date),
+    date_trunc('month', '{start_date}'::date),
+    date_trunc('month', '{end_date}'::date),
     interval '1 month'
   ) AS month_start
 ),
