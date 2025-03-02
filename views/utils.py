@@ -29,7 +29,7 @@ WITH supplier_customers AS (
         customers c ON ks.customer_id = c.id
     WHERE 
         s.id = {supplier_id} 
-    AND ks.end_ks BETWEEN {start_date}  AND {end_date}  -- Здесь подставляется ID интересующего поставщика
+    AND ks.end_ks BETWEEN '{start_date}'  AND '{end_date}'  -- Здесь подставляется ID интересующего поставщика
     GROUP BY 
         s.id, s.name, c.id, c.name
 ),
@@ -72,6 +72,69 @@ GROUP BY
     return result.scalars()._fetchiter_impl()
 
 
+async def metric_percentage_wins(
+    supplier_id: int,
+    start_date: str,
+    end_date: str,
+    db: SessionDep,
+):
+    result = await db.execute(
+        text(
+            f"""
+SELECT ROUND(
+         (COUNT(ks.id_ks) * 100.0 / 
+          (SELECT COUNT(*) 
+           FROM ks 
+           WHERE ks.end_ks BETWEEN '{start_date}' AND '{end_date}')
+         ), 2) AS win_rate
+FROM ks
+JOIN suppliers ON suppliers.id = ks.winner_id
+WHERE suppliers.id = {supplier_id}
+  AND ks.end_ks BETWEEN '{start_date}' AND '{end_date}'
+            """
+        )
+    )
+    return result.scalars()._fetchiter_impl()
+
+
+async def metric_avg_downgrade_cost(
+    supplier_id: int, start_date: str, end_date: str, db: SessionDep
+):
+    result = await db.execute(
+        text(
+            f"""
+SELECT 
+    ROUND(AVG(
+        (CAST(k.start_price AS numeric) - CAST(k.end_price AS numeric)) 
+        / CAST(k.start_price AS numeric) * 100
+    ),2) AS avg_reduction_percent
+FROM ks k
+JOIN suppliers s ON k.winner_id = s.id
+WHERE s.id = {supplier_id}
+  AND k.start_ks BETWEEN '{start_date}' AND '{end_date}'
+GROUP BY s.id;
+            """
+        )
+    )
+    return result.scalars()._fetchiter_impl()
+
+
+async def metric_total_revenue(
+    supplier_id: int, start_date: str, end_date: str, db: SessionDep
+):
+    result = await db.execute(
+        text(
+            f"""
+SELECT SUM(ks.end_price) AS my_revenue
+FROM ks
+WHERE ks.winner_id = {supplier_id}
+  AND ks.end_ks BETWEEN '{start_date}' AND '{end_date}'
+            """
+        )
+    )
+    return result.scalars()._fetchiter_impl()
+
+
 # График 2 состояние 1
 async def revenue_by_regions(
     supplier_id: int, start_date: str, end_date: str, db: SessionDep
@@ -88,7 +151,7 @@ JOIN customers c ON ks.customer_id = c.id
 JOIN regions r ON c.region_id = r.id
 WHERE 
     ks.winner_id = {supplier_id} 
-    AND ks.start_ks BETWEEN {start_date} AND {end_date}
+    AND ks.start_ks BETWEEN '{start_date}' AND '{end_date}'
 GROUP BY r.name
 ORDER BY revenue DESC
             """
@@ -119,7 +182,7 @@ JOIN cte ON o.id_cte = cte.id
 JOIN kpgz_details as kd ON cte.kpgz_id = kd.id
 JOIN kpgz_categories as kc ON kd.parent_id = kc.id
 WHERE k.winner_id = {supplier_id}
-  AND k.end_ks BETWEEN {start_date} AND {end_date}
+  AND k.end_ks BETWEEN '{start_date}' AND '{end_date}'
   AND cust.region_id = {region_id}
 GROUP BY kc.name, kc.code
 ORDER BY total_revenue DESC
@@ -153,7 +216,7 @@ JOIN kpgz_details as kd ON cte.kpgz_id = kd.id
 JOIN kpgz_categories as kc ON kd.parent_id = kc.id
 JOIN regions as reg ON cust.region_id = reg.id
 WHERE k.winner_id = {supplier_id}
-  AND k.end_ks BETWEEN {start_date} AND {end_date}
+  AND k.end_ks BETWEEN '{start_date}' AND '{end_date}'
   AND kc.id = {kpgz_category_id}
 GROUP BY reg.name
 ORDER BY total_revenue DESC
@@ -197,8 +260,8 @@ SELECT
     WHERE 
         s.id = {supplier_id}                         -- Параметр: ID поставщика
         AND c.region_id = {region_id}                -- Параметр: ID региона заказчика
-        AND ks.start_ks >= {start_date}              -- Параметр: начало периода
-        AND ks.end_ks <= {end_date}                  -- Параметр: конец периода
+        AND ks.start_ks >= '{start_date}'              -- Параметр: начало периода
+        AND ks.end_ks <= '{end_date}'                  -- Параметр: конец периода
         AND kc.id = {kpgz_category_id}               -- Параметр: ID укрупненной категории КПГЗ
     GROUP BY 
         kd.code, kd.name
@@ -226,7 +289,7 @@ JOIN ks k ON o.id_ks = k.id_ks
 JOIN cte c ON o.id_cte = c.id
 JOIN kpgz_details kd ON c.kpgz_id = kd.id
 JOIN kpgz_categories kc ON kd.parent_id = kc.id
-WHERE k.start_ks BETWEEN {start_date} AND {end_date}
+WHERE k.start_ks BETWEEN '{start_date}' AND '{end_date}'
 GROUP BY kc.name
 ORDER BY total_revenue DESC
 LIMIT {limit}
@@ -262,7 +325,7 @@ SELECT
     JOIN 
         kpgz_categories kc ON kd.parent_id = kc.id
     WHERE 
-        ks.start_ks BETWEEN {start_date} AND {end_date}
+        ks.start_ks BETWEEN '{start_date}' AND '{end_date}'
         AND c.region_id = {region_id}
     GROUP BY 
         kc.code, kc.name
@@ -291,7 +354,7 @@ JOIN regions r ON s.region_id = r.id
 JOIN cte c ON o.id_cte = c.id
 JOIN kpgz_details kd ON c.kpgz_id = kd.id
 JOIN kpgz_categories kc ON kd.parent_id = kc.id
-WHERE k.start_ks BETWEEN {start_date} AND {end_date}
+WHERE k.start_ks BETWEEN '{start_date}' AND '{end_date}'
   AND kc.id = {kpgz_category_id}
 GROUP BY r.name
 ORDER BY total_revenue DESC
@@ -332,7 +395,7 @@ JOIN
 JOIN 
     regions r ON c.region_id = r.id
 WHERE 
-    ks.start_ks BETWEEN {start_date} AND {end_date}
+    ks.start_ks BETWEEN '{start_date}' AND '{end_date}'
     AND r.id = {region_id}
     AND kc.id = {kpgz_category_id}
 GROUP BY 
@@ -366,7 +429,7 @@ agg AS (
     SUM(CAST(ks.end_price AS numeric)) AS total_revenue
   FROM ks
   WHERE ks.winner_id = {supplier_id}
-    AND ks.start_ks BETWEEN {start_date} AND {end_date}
+    AND ks.start_ks BETWEEN '{start_date}' AND '{end_date}'
   GROUP BY date_trunc('month', ks.start_ks)
 )
 SELECT
@@ -390,8 +453,8 @@ async def revenue_trend_by_weeks(
             f"""
 WITH weeks AS (
   SELECT generate_series(
-    date_trunc('week', {start_date}::date),
-    date_trunc('week', {end_date}::date),
+    date_trunc('week', '{start_date}'::date),
+    date_trunc('week', '{end_date}'::date),
     interval '1 week'
   ) AS week_start
 ),
@@ -401,7 +464,7 @@ agg AS (
     SUM(CAST(ks.end_price AS numeric)) AS total_revenue
   FROM ks
   WHERE ks.winner_id = {supplier_id}
-    AND ks.start_ks BETWEEN {start_date} AND {end_date}
+    AND ks.start_ks BETWEEN '{start_date}' AND '{end_date}'
   GROUP BY date_trunc('week', ks.start_ks)
 )
 SELECT
@@ -425,8 +488,8 @@ async def revenue_trend_by_mounth_by_region_id(
             f"""
 WITH months AS (
   SELECT generate_series(
-    date_trunc('month', {start_date}::date),
-    date_trunc('month', {end_date}::date),
+    date_trunc('month', '{start_date}'::date),
+    date_trunc('month', '{end_date}'::date),
     interval '1 month'
   ) AS month_start
 ),
@@ -437,7 +500,7 @@ agg AS (
   FROM ks
   JOIN customers c ON ks.customer_id = c.id
   WHERE ks.winner_id = {supplier_id}
-    AND ks.end_ks BETWEEN {start_date} AND {end_date}
+    AND ks.end_ks BETWEEN '{start_date}' AND '{end_date}'
     AND c.region_id = {region_id}
   GROUP BY date_trunc('month', ks.end_ks)
 )
@@ -462,8 +525,8 @@ async def revenue_trend_by_weeks_by_region_id(
             f"""
 WITH weeks AS (
   SELECT generate_series(
-    date_trunc('week', {start_date}::date),
-    date_trunc('week', {end_date}::date),
+    date_trunc('week', '{start_date}'::date),
+    date_trunc('week', '{end_date}'::date),
     interval '1 week'
   ) AS week_start
 ),
@@ -474,7 +537,7 @@ agg AS (
   FROM ks
   JOIN customers c ON ks.customer_id = c.id
   WHERE ks.winner_id = {supplier_id}
-    AND ks.end_ks BETWEEN {start_date} AND {end_date}
+    AND ks.end_ks BETWEEN '{start_date}' AND '{end_date}'
     AND c.region_id = {region_id}
   GROUP BY date_trunc('week', ks.end_ks)
 )
@@ -503,8 +566,8 @@ async def revenue_trend_by_mounth_by_kpgz_category_id(
             f"""
 WITH months AS (
   SELECT generate_series(
-    date_trunc('month', {start_date}::date),
-    date_trunc('month', {end_date}::date),
+    date_trunc('month', '{start_date}'::date),
+    date_trunc('month', '{end_date}'::date),
     interval '1 month'
   ) AS month_start
 ),
@@ -526,7 +589,7 @@ agg AS (
   FROM ks
   JOIN relevant_orders ro ON ks.id_ks = ro.id_ks
   WHERE ks.winner_id = {supplier_id}
-    AND ks.end_ks BETWEEN {start_date} AND {end_date}
+    AND ks.end_ks BETWEEN '{start_date}' AND '{end_date}'
   GROUP BY date_trunc('month', ks.end_ks)
 )
 SELECT
@@ -554,8 +617,8 @@ async def revenue_trend_by_weeks_by_kpgz_category_id(
             f"""
 WITH weeks AS (
   SELECT generate_series(
-    date_trunc('week', {start_date}::date),
-    date_trunc('week', {end_date}::date),
+    date_trunc('week', '{start_date}'::date),
+    date_trunc('week', '{end_date}'::date),
     interval '1 week'
   ) AS week_start
 ),
@@ -577,7 +640,7 @@ agg AS (
   FROM ks
   JOIN relevant_orders ro ON ks.id_ks = ro.id_ks
   WHERE ks.winner_id = {supplier_id}
-    AND ks.end_ks BETWEEN {start_date} AND {end_date}
+    AND ks.end_ks BETWEEN '{start_date}' AND '{end_date}'
   GROUP BY date_trunc('week', ks.end_ks)
 )
 SELECT
@@ -606,8 +669,8 @@ async def revenue_trend_by_mounth_by_kpgz_category_id_and_region_id(
             f"""
 WITH months AS (
   SELECT generate_series(
-    date_trunc('month', {start_date}::date),
-    date_trunc('month', {end_date}::date),
+    date_trunc('month', '{start_date}'::date),
+    date_trunc('month', '{end_date}'::date),
     interval '1 month'
   ) AS month_start
 ),
@@ -621,7 +684,7 @@ agg AS (
   JOIN cte ON o.id_cte = cte.id
   JOIN kpgz_details kd ON cte.kpgz_id = kd.id
   WHERE ks.winner_id = {supplier_id}
-    AND ks.end_ks BETWEEN {start_date} AND {end_date}
+    AND ks.end_ks BETWEEN '{start_date}' AND '{end_date}'
     AND c.region_id = {region_id}
     AND kd.parent_id = {kpgz_category_id}
   GROUP BY date_trunc('month', ks.end_ks)
@@ -652,8 +715,8 @@ async def revenue_trend_by_weeks_by_kpgz_category_id_and_region_id(
             f"""
 WITH weeks AS (
   SELECT generate_series(
-    date_trunc('week', {start_date}::date),
-    date_trunc('week', {end_date}::date),
+    date_trunc('week', '{start_date}'::date),
+    date_trunc('week', '{end_date}'::date),
     interval '1 week'
   ) AS week_start
 ),
@@ -667,7 +730,7 @@ agg AS (
   JOIN cte ON o.id_cte = cte.id
   JOIN kpgz_details kd ON cte.kpgz_id = kd.id
   WHERE ks.winner_id = {supplier_id}
-    AND ks.end_ks BETWEEN {start_date} AND {end_date}
+    AND ks.end_ks BETWEEN '{start_date}' AND '{end_date}'
     AND c.region_id = {region_id}
     AND kd.parent_id = {kpgz_category_id}
   GROUP BY date_trunc('week', ks.end_ks)
@@ -698,7 +761,7 @@ FROM orders as o
 JOIN ks as k ON o.id_ks = k.id_ks
 JOIN customers as c ON k.customer_id = c.id
 WHERE k.winner_id = {supplier_id}
-AND k.end_ks BETWEEN {start_date} AND {end_date}
+AND k.end_ks BETWEEN '{start_date}' AND '{end_date}'
 GROUP BY c.name
 ORDER BY total_revenue DESC
 LIMIT {limit}
@@ -729,7 +792,7 @@ JOIN customers AS cus ON ks.customer_id = cus.id
 JOIN suppliers AS s ON ks.winner_id = s.id
 JOIN regions AS r ON cus.region_id = r.id
 WHERE s.id = {supplier_id}  -- ID поставщика
-    AND ks.end_ks BETWEEN {start_date} AND {end_date}  -- Период
+    AND ks.end_ks BETWEEN '{start_date}' AND '{end_date}'  -- Период
     AND r.id = {region_id}  -- Регион
 GROUP BY cus.name
 ORDER BY total_revenue DESC
@@ -763,7 +826,7 @@ JOIN cte ON o.id_cte = cte.id
 JOIN kpgz_details AS kd ON cte.kpgz_id = kd.id
 JOIN kpgz_categories AS kc ON kd.parent_id = kc.id
 WHERE s.id = {supplier_id}  -- ID поставщика
-    AND ks.end_ks BETWEEN {start_date} AND {end_date}  -- Период
+    AND ks.end_ks BETWEEN '{start_date}' AND '{end_date}'  -- Период
     AND kc.id = {kpgz_category_id}  -- Укрупненный КПГЗ
 GROUP BY cus.name
 ORDER BY total_revenue DESC;
@@ -799,7 +862,7 @@ SELECT
     JOIN kpgz_categories kc ON kd.parent_id = kc.id
     WHERE
         ks.winner_id = {supplier_id}
-        AND ks.end_ks BETWEEN {start_date} AND {end_date}
+        AND ks.end_ks BETWEEN '{start_date}' AND '{end_date}'
         AND kc.id = {kpgz_category_id}
         AND r.id = {region_id}
     GROUP BY

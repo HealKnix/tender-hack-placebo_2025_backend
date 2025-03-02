@@ -46,7 +46,6 @@ async def create(db: SessionDep, dashboard: DashboardSchema.Create):
         db.add(property)
         await db.commit()
         await db.refresh(property)
-    
 
     onwer = await user_views.get_by_id(db, dashboard.owner_id)
 
@@ -87,28 +86,26 @@ async def get_by_owner_id(db: SessionDep, user_id: int):
     result = []
     for dashboard in dashboards:
         query = select(DashboardPropertyModel).where(
-                        DashboardPropertyModel.dashboard_id == dashboard.id
-                    )
+            DashboardPropertyModel.dashboard_id == dashboard.id
+        )
         properties = (await db.execute(query)).scalars().all()
-        
-        query = select(UserModel).where(
-                        UserModel.id == dashboard.owner_id
-                    )
+
+        query = select(UserModel).where(UserModel.id == dashboard.owner_id)
         owner = (await db.execute(query)).scalar()
-        
+
         query = select(DashboardSubscriptionModel).where(
-                        DashboardSubscriptionModel.dashboard_id == dashboard.id
-                    )
+            DashboardSubscriptionModel.dashboard_id == dashboard.id
+        )
         subscribers = (await db.execute(query)).scalars().all()
-        
+
         query = select(DashboardMetricModel).where(
-                        DashboardMetricModel.dashboard_id == dashboard.id
-                    )
+            DashboardMetricModel.dashboard_id == dashboard.id
+        )
         metrics = (await db.execute(query)).scalars().all()
-        
+
         query = select(DashboardFilterModel).where(
-                        DashboardFilterModel.dashboard_id == dashboard.id
-                    )
+            DashboardFilterModel.dashboard_id == dashboard.id
+        )
         filters = (await db.execute(query)).scalars().all()
 
         result.append(
