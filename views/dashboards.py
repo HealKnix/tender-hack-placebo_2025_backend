@@ -4,6 +4,8 @@ from models import (
     DashboardPropertyModel,
     DashboardMetricModel,
     DashboardFilterModel,
+    DashboardSubscriptionModel,
+    UserModel,
 )
 from sqlalchemy import select
 import schemas.dashboards as DashboardSchema
@@ -31,6 +33,9 @@ async def create(db: SessionDep, dashboard: DashboardSchema.Create):
 
     db.add(new_dashboard)
 
+    await db.commit()
+    await db.refresh(new_dashboard)
+
     for row in dashboard.properties:
         temp_str = row.split(".")
         property = DashboardPropertyModel(
@@ -39,11 +44,11 @@ async def create(db: SessionDep, dashboard: DashboardSchema.Create):
             column_name=temp_str[1],
         )
         db.add(property)
+        await db.commit()
+        await db.refresh(property)
+    
 
     onwer = await user_views.get_by_id(db, dashboard.owner_id)
-
-    await db.commit()
-    await db.refresh(new_dashboard)
 
     return {
         "id": new_dashboard.id,
@@ -81,33 +86,30 @@ async def get_by_owner_id(db: SessionDep, user_id: int):
 
     result = []
     for dashboard in dashboards:
-        properties = (
-            (
-                await db.execute(
-                    select(DashboardPropertyModel).where(
+        query = select(DashboardPropertyModel).where(
                         DashboardPropertyModel.dashboard_id == dashboard.id
                     )
-                )
-            )
-            .scalars()
-            .all()
-        )
-        owner = await user_views.get_by_id(db, dashboard.owner_id)
-        subscribers = (
-            await dashboard_subscription_views.get_subscribers_by_dashboard_id(
-                db, dashboard.id
-            )
-        )
-        metrics = await db.execute(
-            select(DashboardMetricModel).where(
-                DashboardMetricModel.dashboard_id == dashboard.id
-            )
-        )
-        filters = await db.execute(
-            select(DashboardFilterModel).where(
-                DashboardFilterModel.dashboard_id == dashboard.id
-            )
-        )
+        properties = (await db.execute(query)).scalars().all()
+        
+        query = select(UserModel).where(
+                        UserModel.id == dashboard.owner_id
+                    )
+        owner = (await db.execute(query)).scalar()
+        
+        query = select(DashboardSubscriptionModel).where(
+                        DashboardSubscriptionModel.dashboard_id == dashboard.id
+                    )
+        subscribers = (await db.execute(query)).scalars().all()
+        
+        query = select(DashboardMetricModel).where(
+                        DashboardMetricModel.dashboard_id == dashboard.id
+                    )
+        metrics = (await db.execute(query)).scalars().all()
+        
+        query = select(DashboardFilterModel).where(
+                        DashboardFilterModel.dashboard_id == dashboard.id
+                    )
+        filters = (await db.execute(query)).scalars().all()
 
         result.append(
             {

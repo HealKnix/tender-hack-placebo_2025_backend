@@ -20,7 +20,7 @@ class UserModel(Base):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    supplier_id = Column(Integer, ForeignKey("suppliers.id"))
+    supplier_id = Column(Integer, ForeignKey("suppliers.id"), nullable=False)
     full_name = Column(String)
     email = Column(String, unique=True, index=True)
     password = Column(String)
@@ -41,7 +41,7 @@ class DashboardModel(Base):
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     title = Column(String)
-    owner_id = Column(Integer, ForeignKey("users.id"))
+    owner_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, onupdate=datetime.utcnow)
 
@@ -73,7 +73,7 @@ class DashboardFilterModel(Base):
     __tablename__ = "dashboard_filters"
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    dashboard_id = Column(Integer, ForeignKey("dashboards.id"))
+    dashboard_id = Column(Integer, ForeignKey("dashboards.id"), nullable=False)
     name = Column(String(255))
     value = Column(String(255))
 
@@ -89,7 +89,7 @@ class DashboardPropertyModel(Base):
     __tablename__ = "dashboard_properties"
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    dashboard_id = Column(Integer, ForeignKey("dashboards.id"))
+    dashboard_id = Column(Integer, ForeignKey("dashboards.id"), nullable=False)
     table_name = Column(String(255))
     column_name = Column(String(255))
     type = Column(String(255), nullable=True)
@@ -106,7 +106,7 @@ class DashboardMetricModel(Base):
     __tablename__ = "dashboard_metrics"
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    dashboard_id = Column(Integer, ForeignKey("dashboards.id"))
+    dashboard_id = Column(Integer, ForeignKey("dashboards.id"), nullable=False)
     name = Column(String(255))
     value = Column(Numeric(18, 2))
     unit = Column(String(255))
@@ -123,8 +123,8 @@ class DashboardSubscriptionModel(Base):
     __tablename__ = "dashboard_subscriptions"
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    dashboard_id = Column(Integer, ForeignKey("dashboards.id"))
-    user_id = Column(Integer, ForeignKey("users.id"))
+    dashboard_id = Column(Integer, ForeignKey("dashboards.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     schedule_time = Column(DateTime)
     schedule_type = Column(String(255))
 
@@ -153,7 +153,7 @@ class WidgetModel(Base):
     min = Column(Numeric(18, 2))
     max = Column(Numeric(18, 2))
     title = Column(String)
-    dashboard_id = Column(Integer, ForeignKey("dashboards.id"))
+    dashboard_id = Column(Integer, ForeignKey("dashboards.id"), nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, onupdate=datetime.utcnow)
 
@@ -174,11 +174,11 @@ class ReportModel(Base):
     __tablename__ = "reports"
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    dashboard_id = Column(Integer, ForeignKey("dashboards.id"))
+    dashboard_id = Column(Integer, ForeignKey("dashboards.id"), nullable=False)
     name = Column(String, index=True, unique=True)
     title = Column(String)
     description = Column(Text)
-    status_id = Column(Integer, ForeignKey("report_statuses.id"))
+    status_id = Column(Integer, ForeignKey("report_statuses.id"), nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, onupdate=datetime.utcnow)
 
