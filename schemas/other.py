@@ -4,19 +4,19 @@ from decimal import Decimal
 
 
 class Metric1(BaseModel):
-    hhi_index: float
+    hhi_index: float | None
 
 
 class Metric2(BaseModel):
-    win_rate: float
+    win_rate: float | None
 
 
 class Metric3(BaseModel):
-    avg_reduction_percent: float
+    avg_reduction_percent: float | None
 
 
 class Metric4(BaseModel):
-    my_revenue: float
+    my_revenue: float | None
 
 
 class KpgzSchema(BaseModel):
