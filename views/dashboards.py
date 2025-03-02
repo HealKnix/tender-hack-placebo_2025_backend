@@ -47,15 +47,49 @@ async def create(db: SessionDep, dashboard: DashboardSchema.Create):
         await db.commit()
         await db.refresh(property)
 
-    onwer = await user_views.get_by_id(db, dashboard.owner_id)
+    query = select(UserModel).where(UserModel.id == new_dashboard.owner_id)
+    owner = (await db.execute(query)).scalar()
+
+    query = select(DashboardSubscriptionModel).where(
+        DashboardSubscriptionModel.dashboard_id == new_dashboard.id
+    )
+    subscribers = (await db.execute(query)).scalars().all()
 
     return {
         "id": new_dashboard.id,
         "title": new_dashboard.title,
-        "owner": onwer,
+        "owner": dashboard.owner_id,
         "properties": dashboard.properties,
-        "metrics": [],
+        "metrics": [
+            {
+                "id": 0,
+                **util_views.herfindahl_hirschman_rate(
+                    dashboard.owner_id, "2022-01-01", "2025-01-01"
+                ),
+            },
+            {
+                "id": 1,
+                **util_views.metric_percentage_wins(
+                    dashboard.owner_id, "2022-01-01", "2025-01-01"
+                ),
+            },
+            {
+                "id": 2,
+                **util_views.metric_avg_downgrade_cost(
+                    dashboard.owner_id, "2022-01-01", "2025-01-01"
+                ),
+            },
+            {
+                "id": 3,
+                **util_views.metric_total_revenue(
+                    dashboard.owner_id, "2022-01-01", "2025-01-01"
+                ),
+            },
+        ],
         "filters": [],
+        "main_chart": util_views.revenue_trend_by_mounth(
+            dashboard.owner_id, "2022-01-01", "2025-01-01"
+        ),
     }
 
 
