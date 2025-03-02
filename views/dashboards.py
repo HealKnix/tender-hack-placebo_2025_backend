@@ -55,19 +55,19 @@ async def create(db: SessionDep, dashboard: DashboardSchema.Create):
     )
     subscribers = (await db.execute(query)).scalars().all()
 
-    metric_1 = util_views.herfindahl_hirschman_rate(
+    metric_1 = await util_views.herfindahl_hirschman_rate(
         new_dashboard.owner_id, "2022-01-01", "2025-01-01", db
     )
 
-    metric_2 = util_views.metric_percentage_wins(
+    metric_2 = await util_views.metric_percentage_wins(
         new_dashboard.owner_id, "2022-01-01", "2025-01-01", db
     )
 
-    metric_3 = util_views.metric_avg_downgrade_cost(
+    metric_3 = await util_views.metric_avg_downgrade_cost(
         new_dashboard.owner_id, "2022-01-01", "2025-01-01", db
     )
 
-    metric_4 = util_views.metric_total_revenue(
+    metric_4 = await util_views.metric_total_revenue(
         new_dashboard.owner_id, "2022-01-01", "2025-01-01", db
     )
 
@@ -140,19 +140,19 @@ async def get_by_owner_id(db: SessionDep, user_id: int):
         )
         subscribers = (await db.execute(query)).scalars().all()
 
-        metric_1 = util_views.herfindahl_hirschman_rate(
+        metric_1 = await util_views.herfindahl_hirschman_rate(
             user_id, "2022-01-01", "2025-01-01", db
         )
 
-        metric_2 = util_views.metric_percentage_wins(
+        metric_2 = await util_views.metric_percentage_wins(
             user_id, "2022-01-01", "2025-01-01", db
         )
 
-        metric_3 = util_views.metric_avg_downgrade_cost(
+        metric_3 = await util_views.metric_avg_downgrade_cost(
             user_id, "2022-01-01", "2025-01-01", db
         )
 
-        metric_4 = util_views.metric_total_revenue(
+        metric_4 = await util_views.metric_total_revenue(
             user_id, "2022-01-01", "2025-01-01", db
         )
 
