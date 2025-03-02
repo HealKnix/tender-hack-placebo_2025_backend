@@ -3,6 +3,22 @@ from datetime import datetime
 from decimal import Decimal
 
 
+class Metric1(BaseModel):
+    hhi_index: float
+
+
+class Metric2(BaseModel):
+    win_rate: float
+
+
+class Metric3(BaseModel):
+    avg_reduction_percent: float
+
+
+class Metric4(BaseModel):
+    my_revenue: float
+
+
 class KpgzSchema(BaseModel):
     id: int
     code_kpgz: str

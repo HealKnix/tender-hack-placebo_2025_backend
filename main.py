@@ -11,6 +11,7 @@ from database import SessionDep, engine
 import schemas.users as UserSchema
 import schemas.dashboards as DashboardSchema
 import schemas.deepseek as DeepseekSchema
+import schemas.other as OtherSchema
 
 import views.users as user_views
 import views.dashboards as dashboard_views
@@ -161,6 +162,7 @@ async def get_widgets_by_dashboard_id(dashboard_id: int, db: SessionDep):
 @app.get(
     "/api/utils/herfindahl_hirschman_index/{supplier_id}/{start_date}/{end_date}",
     tags=["Utils/Metrics"],
+    response_model=OtherSchema.Metric1,
 )
 async def get_herfindahl_hirschman_rate(
     supplier_id: int, start_date: str, end_date: str, db: SessionDep
@@ -173,6 +175,7 @@ async def get_herfindahl_hirschman_rate(
 @app.get(
     "/api/utils/metric_percentage_wins/{supplier_id}/{start_date}/{end_date}",
     tags=["Utils/Metrics"],
+    response_model=OtherSchema.Metric2,
 )
 async def get_metric_percentage_wins(
     supplier_id: int, start_date: str, end_date: str, db: SessionDep
@@ -185,6 +188,7 @@ async def get_metric_percentage_wins(
 @app.get(
     "/api/utils/metric_avg_downgrade_cost/{supplier_id}/{start_date}/{end_date}",
     tags=["Utils/Metrics"],
+    response_model=OtherSchema.Metric3,
 )
 async def get_metric_avg_downgrade_cost(
     supplier_id: int, start_date: str, end_date: str, db: SessionDep
@@ -197,6 +201,7 @@ async def get_metric_avg_downgrade_cost(
 @app.get(
     "/api/utils/metric_total_revenue/{supplier_id}/{start_date}/{end_date}",
     tags=["Utils/Metrics"],
+    response_model=OtherSchema.Metric4,
 )
 async def get_metric_total_revenue(
     supplier_id: int, start_date: str, end_date: str, db: SessionDep

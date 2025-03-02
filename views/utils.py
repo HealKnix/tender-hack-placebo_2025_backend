@@ -132,7 +132,7 @@ WHERE ks.winner_id = {supplier_id}
             """
         )
     )
-    return {"avg_reduction_percent": result.scalar()}
+    return {"my_revenue": result.scalar()}
 
 
 # График 2 состояние 1
