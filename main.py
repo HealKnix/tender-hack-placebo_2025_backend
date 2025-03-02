@@ -1,4 +1,4 @@
-from sqlalchemy import MetaData, select, text
+from sqlalchemy import MetaData, text
 import uvicorn
 import aiohttp
 
@@ -8,7 +8,6 @@ from fastapi.responses import FileResponse
 
 from database import SessionDep, engine
 
-from models import SupplierModel
 import schemas.users as UserSchema
 import schemas.dashboards as DashboardSchema
 import schemas.deepseek as DeepseekSchema
@@ -119,16 +118,6 @@ async def delete_user_endpoint(user_id: int, db: SessionDep):
     if not result:
         raise HTTPException(status_code=404, detail="Пользователь не найден")
     return {"detail": "Пользователь удалён"}
-
-
-# ####################################################################
-
-
-@app.get("/api/suppliers/{inn}", tags=["Suppliers"])
-async def get_supplier_by_inn(inn: str, db: SessionDep):
-    res = await db.execute(select(SupplierModel).where(SupplierModel.inn == inn))
-
-    return res.scalar()
 
 
 # ####################################################################
@@ -619,8 +608,10 @@ async def get_table_columns(table_name: str):
     return columns
 
 
-@app.get("/api/tables/{table_name}/columns/{column_name}", tags=["Database"])
-async def get_table_column_data(table_name: str, column_names: str):
+@app.get("/api/tables/{table_name}/columns/{column_name}/{func}", tags=["Database"])
+async def get_table_column_data(
+    table_name: str, column_names: str, func: str | None = None
+):
     async with engine.connect() as conn:
         tables = await conn.run_sync(get_table_names)
         if table_name not in tables:
@@ -635,7 +626,16 @@ async def get_table_column_data(table_name: str, column_names: str):
                     detail=f"Столбец '{column_name}' не найден в таблице '{table_name}'",
                 )
 
-        result = await conn.execute(text(f"SELECT {column_names} FROM {table_name}"))
+        if not func:
+            result = await conn.execute(
+                text(f"SELECT {column_names} FROM {table_name}")
+            )
+        else:
+            result = await conn.execute(
+                text(f"SELECT {func}({column_names}) FROM {table_name} LIMIT 1")
+            )
+
+            return result.scalar()
 
     # Преобразуем каждую строку в словарь с именем колонки в качестве ключа
     items = [
