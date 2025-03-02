@@ -1,4 +1,4 @@
-from sqlalchemy import MetaData, text
+from sqlalchemy import MetaData, select, text
 import uvicorn
 import aiohttp
 
@@ -8,6 +8,7 @@ from fastapi.responses import FileResponse
 
 from database import SessionDep, engine
 
+from models import SupplierModel
 import schemas.users as UserSchema
 import schemas.dashboards as DashboardSchema
 import schemas.deepseek as DeepseekSchema
@@ -118,6 +119,16 @@ async def delete_user_endpoint(user_id: int, db: SessionDep):
     if not result:
         raise HTTPException(status_code=404, detail="Пользователь не найден")
     return {"detail": "Пользователь удалён"}
+
+
+# ####################################################################
+
+
+@app.get("/api/suppliers/{inn}", tags=["Suppliers"])
+async def get_supplier_by_inn(inn: str, db: SessionDep):
+    res = await db.execute(select(SupplierModel).where(SupplierModel.inn == inn))
+
+    return res.scalar()
 
 
 # ####################################################################
