@@ -69,7 +69,7 @@ GROUP BY
             """
         )
     )
-    return {"hhi_index": result.scalar()}
+    return {"name": "Индекс Херфиндаля-Хиршмана", "value": result.scalar(), "unit": ""}
 
 
 async def metric_percentage_wins(
@@ -94,7 +94,7 @@ WHERE suppliers.id = {supplier_id}
             """
         )
     )
-    return {"win_rate": result.scalar()}
+    return {"name": "Доля побед в КС", "value": result.scalar(), "unit": "%"}
 
 
 async def metric_avg_downgrade_cost(
@@ -116,7 +116,7 @@ GROUP BY s.id;
             """
         )
     )
-    return {"avg_reduction_percent": result.scalar()}
+    return {"name": "Среднее снижение цены", "value": result.scalar(), "unit": "%"}
 
 
 async def metric_total_revenue(
@@ -125,14 +125,18 @@ async def metric_total_revenue(
     result = await db.execute(
         text(
             f"""
-SELECT SUM(ks.end_price) AS my_revenue
+SELECT ROUND(SUM(ks.end_price) / 1000000, 2) AS my_revenue
 FROM ks
 WHERE ks.winner_id = {supplier_id}
   AND ks.end_ks BETWEEN '{start_date}' AND '{end_date}'
             """
         )
     )
-    return {"my_revenue": result.scalar()}
+    return {
+        "name": "Общая выручка",
+        "value": result.scalar(),
+        "unit": "млн. руб.",
+    }
 
 
 # График 2 состояние 1

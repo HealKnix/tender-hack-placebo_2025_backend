@@ -1,4 +1,5 @@
-from sqlalchemy import MetaData, text
+from datetime import datetime
+from sqlalchemy import MetaData, select, text
 import uvicorn
 import aiohttp
 
@@ -8,6 +9,7 @@ from fastapi.responses import FileResponse
 
 from database import SessionDep, engine
 
+from models import SupplierModel, DashboardSubscriptionModel
 import schemas.users as UserSchema
 import schemas.dashboards as DashboardSchema
 import schemas.deepseek as DeepseekSchema
@@ -123,6 +125,16 @@ async def delete_user_endpoint(user_id: int, db: SessionDep):
 # ####################################################################
 
 
+@app.get("/api/suppliers/{inn}", tags=["Suppliers"])
+async def get_supplier_by_inn(inn: str, db: SessionDep):
+    res = await db.execute(select(SupplierModel).where(SupplierModel.inn == inn))
+
+    return res.scalar()
+
+
+# ####################################################################
+
+
 @app.get("/api/dashboards", tags=["Dashboard"])
 async def get_dashboards(db: SessionDep):
     return await dashboard_views.get_all(db)
@@ -141,6 +153,28 @@ async def update_dashboards_by_id(dashboard_id: int, dashboard, db: SessionDep):
 @app.get("/api/dashboards/owner/{owner_id}", tags=["Dashboard"])
 async def get_dashboards_by_owner_id(owner_id: int, db: SessionDep):
     return await dashboard_views.get_by_owner_id(db, owner_id)
+
+
+@app.get("/api/dashboards_subsribers", tags=["Subscribers"])
+async def get_subscribers(db: SessionDep):
+    res = await db.execute(select(DashboardSubscriptionModel))
+    return res.scalars().all()
+
+
+@app.patch("/api/dashboards_subsribers", tags=["Subscribers"])
+async def update_subscribers(db: SessionDep):
+    schedule = DashboardSubscriptionModel(
+        dashboard_id=1,
+        user_id=3,
+        schedule_time=datetime.now(),
+        schedule_type="daily",
+    )
+
+    db.add(schedule)
+    await db.commit()
+    await db.refresh(schedule)
+
+    return schedule
 
 
 # ####################################################################
@@ -162,7 +196,6 @@ async def get_widgets_by_dashboard_id(dashboard_id: int, db: SessionDep):
 @app.get(
     "/api/utils/herfindahl_hirschman_index/{supplier_id}/{start_date}/{end_date}",
     tags=["Utils/Metrics"],
-    response_model=OtherSchema.Metric1,
 )
 async def get_herfindahl_hirschman_rate(
     supplier_id: int, start_date: str, end_date: str, db: SessionDep
@@ -175,7 +208,6 @@ async def get_herfindahl_hirschman_rate(
 @app.get(
     "/api/utils/metric_percentage_wins/{supplier_id}/{start_date}/{end_date}",
     tags=["Utils/Metrics"],
-    response_model=OtherSchema.Metric2,
 )
 async def get_metric_percentage_wins(
     supplier_id: int, start_date: str, end_date: str, db: SessionDep
@@ -188,7 +220,6 @@ async def get_metric_percentage_wins(
 @app.get(
     "/api/utils/metric_avg_downgrade_cost/{supplier_id}/{start_date}/{end_date}",
     tags=["Utils/Metrics"],
-    response_model=OtherSchema.Metric3,
 )
 async def get_metric_avg_downgrade_cost(
     supplier_id: int, start_date: str, end_date: str, db: SessionDep
@@ -201,7 +232,6 @@ async def get_metric_avg_downgrade_cost(
 @app.get(
     "/api/utils/metric_total_revenue/{supplier_id}/{start_date}/{end_date}",
     tags=["Utils/Metrics"],
-    response_model=OtherSchema.Metric4,
 )
 async def get_metric_total_revenue(
     supplier_id: int, start_date: str, end_date: str, db: SessionDep
