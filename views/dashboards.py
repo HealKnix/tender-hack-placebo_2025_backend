@@ -10,7 +10,7 @@ from models import (
 from sqlalchemy import select
 import schemas.dashboards as DashboardSchema
 import views.users as user_views
-import views.dashboard_subscription as dashboard_subscription_views
+import views.utils as util_views
 
 
 async def get_by_id(db: SessionDep, dashboard_id: int):
@@ -98,25 +98,42 @@ async def get_by_owner_id(db: SessionDep, user_id: int):
         )
         subscribers = (await db.execute(query)).scalars().all()
 
-        query = select(DashboardMetricModel).where(
-            DashboardMetricModel.dashboard_id == dashboard.id
-        )
-        metrics = (await db.execute(query)).scalars().all()
-
-        query = select(DashboardFilterModel).where(
-            DashboardFilterModel.dashboard_id == dashboard.id
-        )
-        filters = (await db.execute(query)).scalars().all()
-
         result.append(
             {
                 "id": dashboard.id,
                 "title": dashboard.title,
                 "owner": owner,
                 "properties": properties,
-                "metrics": metrics,
-                "filters": filters,
+                "metrics": [
+                    {
+                        "id": 0,
+                        **util_views.herfindahl_hirschman_rate(
+                            user_id, "2022-01-01", "2025-01-01"
+                        ),
+                    },
+                    {
+                        "id": 1,
+                        **util_views.metric_percentage_wins(
+                            user_id, "2022-01-01", "2025-01-01"
+                        ),
+                    },
+                    {
+                        "id": 2,
+                        **util_views.metric_avg_downgrade_cost(
+                            user_id, "2022-01-01", "2025-01-01"
+                        ),
+                    },
+                    {
+                        "id": 3,
+                        **util_views.metric_total_revenue(
+                            user_id, "2022-01-01", "2025-01-01"
+                        ),
+                    },
+                ],
                 "subscribers": subscribers,
+                "main_chart": util_views.revenue_trend_by_mounth(
+                    user_id, "2022-01-01", "2025-01-01"
+                ),
             }
         )
 
