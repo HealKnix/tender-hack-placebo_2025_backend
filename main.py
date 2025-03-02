@@ -126,13 +126,16 @@ async def delete_user_endpoint(user_id: int, db: SessionDep):
 async def get_dashboards(db: SessionDep):
     return await dashboard_views.get_all(db)
 
+
 @app.post("/api/dashboards", tags=["Dashboard"])
 async def create_dashboard(dashboard: DashboardSchema.Create, db: SessionDep):
     return await dashboard_views.create(db, dashboard)
 
+
 @app.patch("/api/dashboards/{dashboard_id}", tags=["Dashboard"])
 async def update_dashboards_by_id(dashboard_id: int, dashboard, db: SessionDep):
     return await dashboard_views.update_by_id(db, dashboard_id, dashboard)
+
 
 @app.get("/api/dashboards/owner/{owner_id}", tags=["Dashboard"])
 async def get_dashboards_by_owner_id(owner_id: int, db: SessionDep):
@@ -160,14 +163,317 @@ async def get_herfindahl_hirschman_rate(supplier_id: int, db: SessionDep):
     return await util_views.herfindahl_hirschman_rate(supplier_id, db)
 
 
-@app.get("/api/utils/suppliers_success_rate", tags=["Utils"])
-async def get_suppliers_success_rate(db: SessionDep):
-    return await util_views.suppliers_success_rate(db)
+@app.get("/api/utils/revenue_by_regions", tags=["Utils"])
+async def get_revenue_by_regions(
+    supplier_id: int, start_date: str, end_date: str, db: SessionDep
+):
+    return await util_views.revenue_by_regions(supplier_id, start_date, end_date, db)
 
 
-@app.get("/api/utils/price_reduction_by_kpgz_categories_rate", tags=["Utils"])
-async def get_price_reduction_by_kpgz_categories_rate(db: SessionDep):
-    return await util_views.price_reduction_by_kpgz_categories_rate(db)
+@app.get("/api/utils/revenue_by_kpgz_category_by_region_id", tags=["Utils"])
+async def get_revenue_by_kpgz_category_by_region_id(
+    supplier_id: int,
+    start_date: str,
+    end_date: str,
+    region_id: int,
+    limit: int,
+    db: SessionDep,
+):
+    return await util_views.revenue_by_kpgz_category_by_region_id(
+        supplier_id, start_date, end_date, region_id, limit, db
+    )
+
+
+@app.get("/api/utils/revenue_by_kpgz_category_by_kpgz_category_id", tags=["Utils"])
+async def get_revenue_by_kpgz_category_by_kpgz_category_id(
+    supplier_id: int,
+    start_date: str,
+    end_date: str,
+    kpgz_category_id: int,
+    limit: int,
+    db: SessionDep,
+):
+    return await util_views.revenue_by_kpgz_category_by_kpgz_category_id(
+        supplier_id, start_date, end_date, kpgz_category_id, limit, db
+    )
+
+
+@app.get(
+    "/api/utils/revenue_by_kpgz_category_by_kpgz_category_id_and_region_id",
+    tags=["Utils"],
+)
+async def get_revenue_by_kpgz_category_by_kpgz_category_id_and_region_id(
+    supplier_id: int,
+    start_date: str,
+    end_date: str,
+    kpgz_category_id: int,
+    region_id: int,
+    limit: int,
+    db: SessionDep,
+):
+    return await util_views.revenue_by_kpgz_category_by_kpgz_category_id_and_region_id(
+        supplier_id, start_date, end_date, kpgz_category_id, region_id, limit, db
+    )
+
+
+@app.get(
+    "/api/utils/total_revenue_by_kpgz_category",
+    tags=["Utils"],
+)
+async def get_total_revenue_by_kpgz_category(
+    start_date: str,
+    end_date: str,
+    limit: int,
+    db: SessionDep,
+):
+    return await util_views.total_revenue_by_kpgz_category(
+        start_date, end_date, limit, db
+    )
+
+
+@app.get(
+    "/api/utils/total_revenue_by_kpgz_category_by_region_id",
+    tags=["Utils"],
+)
+async def get_total_revenue_by_kpgz_category_by_region_id(
+    start_date: str,
+    end_date: str,
+    region_id: int,
+    limit: int,
+    db: SessionDep,
+):
+    return await util_views.total_revenue_by_kpgz_category_by_region_id(
+        start_date, end_date, region_id, limit, db
+    )
+
+
+@app.get(
+    "/api/utils/total_revenue_by_regions_by_kpgz_category_id",
+    tags=["Utils"],
+)
+async def get_total_revenue_by_regions_by_kpgz_category_id(
+    start_date: str,
+    end_date: str,
+    kpgz_category_id: int,
+    limit: int,
+    db: SessionDep,
+):
+    return await util_views.total_revenue_by_regions_by_kpgz_category_id(
+        start_date, end_date, kpgz_category_id, limit, db
+    )
+
+
+@app.get(
+    "/api/utils/total_revenue_by_regions_by_kpgz_category_and_region_id",
+    tags=["Utils"],
+)
+async def get_total_revenue_by_regions_by_kpgz_category_and_region_id(
+    start_date: str,
+    end_date: str,
+    kpgz_category_id: int,
+    region_id: int,
+    limit: int,
+    db: SessionDep,
+):
+    return await util_views.total_revenue_by_regions_by_kpgz_category_and_region_id(
+        start_date, end_date, kpgz_category_id, region_id, limit, db
+    )
+
+
+@app.get(
+    "/api/utils/revenue_trend_by_mounth",
+    tags=["Utils"],
+)
+async def get_revenue_trend_by_mounth(
+    supplier_id: int,
+    start_date: str,
+    end_date: str,
+    db: SessionDep,
+):
+    return await util_views.revenue_trend_by_mounth(
+        supplier_id, start_date, end_date, db
+    )
+
+
+@app.get(
+    "/api/utils/revenue_trend_by_weeks",
+    tags=["Utils"],
+)
+async def get_revenue_trend_by_weeks(
+    supplier_id: int,
+    start_date: str,
+    end_date: str,
+    db: SessionDep,
+):
+    return await util_views.revenue_trend_by_weeks(
+        supplier_id, start_date, end_date, db
+    )
+
+
+@app.get(
+    "/api/utils/revenue_trend_by_mounth_by_region_id",
+    tags=["Utils"],
+)
+async def get_revenue_trend_by_mounth_by_region_id(
+    supplier_id: int,
+    start_date: str,
+    end_date: str,
+    region_id: int,
+    db: SessionDep,
+):
+    return await util_views.revenue_trend_by_mounth_by_region_id(
+        supplier_id, start_date, end_date, region_id, db
+    )
+
+
+@app.get(
+    "/api/utils/revenue_trend_by_weeks_by_region_id",
+    tags=["Utils"],
+)
+async def get_revenue_trend_by_weeks_by_region_id(
+    supplier_id: int,
+    start_date: str,
+    end_date: str,
+    region_id: int,
+    db: SessionDep,
+):
+    return await util_views.revenue_trend_by_weeks_by_region_id(
+        supplier_id, start_date, end_date, region_id, db
+    )
+
+
+@app.get(
+    "/api/utils/revenue_trend_by_mounth_by_kpgz_category_id",
+    tags=["Utils"],
+)
+async def get_revenue_trend_by_mounth_by_kpgz_category_id(
+    supplier_id: int,
+    start_date: str,
+    end_date: str,
+    kpgz_category_id: int,
+    db: SessionDep,
+):
+    return await util_views.revenue_trend_by_mounth_by_kpgz_category_id(
+        supplier_id, start_date, end_date, kpgz_category_id, db
+    )
+
+
+@app.get(
+    "/api/utils/revenue_trend_by_weeks_by_kpgz_category_id",
+    tags=["Utils"],
+)
+async def get_revenue_trend_by_weeks_by_kpgz_category_id(
+    supplier_id: int,
+    start_date: str,
+    end_date: str,
+    kpgz_category_id: int,
+    db: SessionDep,
+):
+    return await util_views.revenue_trend_by_weeks_by_kpgz_category_id(
+        supplier_id, start_date, end_date, kpgz_category_id, db
+    )
+
+
+@app.get(
+    "/api/utils/revenue_trend_by_mounth_by_kpgz_category_id_and_region_id",
+    tags=["Utils"],
+)
+async def get_revenue_trend_by_mounth_by_kpgz_category_id_and_region_id(
+    supplier_id: int,
+    start_date: str,
+    end_date: str,
+    kpgz_category_id: int,
+    region_id: int,
+    db: SessionDep,
+):
+    return await util_views.revenue_trend_by_mounth_by_kpgz_category_id_and_region_id(
+        supplier_id, start_date, end_date, kpgz_category_id, region_id, db
+    )
+
+
+@app.get(
+    "/api/utils/revenue_trend_by_weeks_by_kpgz_category_id_and_region_id",
+    tags=["Utils"],
+)
+async def get_revenue_trend_by_weeks_by_kpgz_category_id_and_region_id(
+    supplier_id: int,
+    start_date: str,
+    end_date: str,
+    kpgz_category_id: int,
+    region_id: int,
+    db: SessionDep,
+):
+    return await util_views.revenue_trend_by_weeks_by_kpgz_category_id_and_region_id(
+        supplier_id, start_date, end_date, kpgz_category_id, region_id, db
+    )
+
+
+@app.get(
+    "/api/utils/revenue_by_customers",
+    tags=["Utils"],
+)
+async def get_revenue_by_customers(
+    supplier_id: int,
+    start_date: str,
+    end_date: str,
+    limit: int,
+    db: SessionDep,
+):
+    return await util_views.revenue_by_customers(
+        supplier_id, start_date, end_date, limit, db
+    )
+
+
+@app.get(
+    "/api/utils/revenue_by_customers_by_region_id",
+    tags=["Utils"],
+)
+async def get_revenue_by_customers_by_region_id(
+    supplier_id: int,
+    start_date: str,
+    end_date: str,
+    region_id: int,
+    limit: int,
+    db: SessionDep,
+):
+    return await util_views.revenue_by_customers_by_region_id(
+        supplier_id, start_date, end_date, region_id, limit, db
+    )
+
+
+@app.get(
+    "/api/utils/revenue_by_customers_by_kpgz_id",
+    tags=["Utils"],
+)
+async def get_revenue_by_customers_by_kpgz_id(
+    supplier_id: int,
+    start_date: str,
+    end_date: str,
+    kpgz_category_id: int,
+    limit: int,
+    db: SessionDep,
+):
+    return await util_views.revenue_by_customers_by_kpgz_id(
+        supplier_id, start_date, end_date, kpgz_category_id, limit, db
+    )
+
+
+@app.get(
+    "/api/utils/revenue_by_customers_by_region_id_and_kpgz_category_id",
+    tags=["Utils"],
+)
+async def get_revenue_by_customers_by_region_id_and_kpgz_category_id(
+    supplier_id: int,
+    start_date: str,
+    end_date: str,
+    kpgz_category_id: int,
+    region_id,
+    limit: int,
+    db: SessionDep,
+):
+    return await util_views.revenue_by_customers_by_region_id_and_kpgz_category_id(
+        supplier_id, start_date, end_date, kpgz_category_id, region_id, limit, db
+    )
 
 
 # ####################################################################

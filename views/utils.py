@@ -1,8 +1,10 @@
-
 from database import SessionDep
 from sqlalchemy import text
 
-async def herfindahl_hirschman_rate(supplier_id: int, start_date: str, end_date: str, db: SessionDep):
+
+async def herfindahl_hirschman_rate(
+    supplier_id: int, start_date: str, end_date: str, db: SessionDep
+):
     """
     Функция для расчета индекса Херфиндаля-Хиршмана
     """
@@ -70,10 +72,10 @@ GROUP BY
     return result.scalars()._fetchiter_impl()
 
 
-
-
-#График 2 состояние 1
-async def revenue_by_regions(supplier_id: int, start_date: str, end_date: str, db: SessionDep):
+# График 2 состояние 1
+async def revenue_by_regions(
+    supplier_id: int, start_date: str, end_date: str, db: SessionDep
+):
     result = await db.execute(
         text(
             f"""
@@ -94,8 +96,16 @@ ORDER BY revenue DESC
     )
     return result.scalars()._fetchiter_impl()
 
-#График 2 состояние 2
-async def revenue_by_kpgz_category_by_region_id(supplier_id: int, start_date: str, end_date: str, region_id: int, limit: int, db: SessionDep):
+
+# График 2 состояние 2
+async def revenue_by_kpgz_category_by_region_id(
+    supplier_id: int,
+    start_date: str,
+    end_date: str,
+    region_id: int,
+    limit: int,
+    db: SessionDep,
+):
     result = await db.execute(
         text(
             f"""
@@ -119,8 +129,16 @@ LIMIT {limit};
     )
     return result.scalars()._fetchiter_impl()
 
-#График 2 состояние 3
-async def revenue_by_kpgz_category_by_kpgz_category_id(supplier_id: int, start_date: str, end_date: str, kpgz_category_id: int, limit: int, db: SessionDep):
+
+# График 2 состояние 3
+async def revenue_by_kpgz_category_by_kpgz_category_id(
+    supplier_id: int,
+    start_date: str,
+    end_date: str,
+    kpgz_category_id: int,
+    limit: int,
+    db: SessionDep,
+):
     result = await db.execute(
         text(
             f"""
@@ -145,8 +163,17 @@ LIMIT {limit}
     )
     return result.scalars()._fetchiter_impl()
 
-#График 2 состояние 4
-async def revenue_by_kpgz_category_by_kpgz_category_id_and_region_id(supplier_id: int, start_date: str, end_date: str, kpgz_category_id: int, region_id: int, limit: int, db: SessionDep):
+
+# График 2 состояние 4
+async def revenue_by_kpgz_category_by_kpgz_category_id_and_region_id(
+    supplier_id: int,
+    start_date: str,
+    end_date: str,
+    kpgz_category_id: int,
+    region_id: int,
+    limit: int,
+    db: SessionDep,
+):
     result = await db.execute(
         text(
             f"""
@@ -183,8 +210,11 @@ SELECT
     )
     return result.scalars()._fetchiter_impl()
 
-#График 1 состояние 1
-async def total_revenue_by_kpgz_category(start_date: str, end_date: str, limit: int, db: SessionDep):
+
+# График 1 состояние 1
+async def total_revenue_by_kpgz_category(
+    start_date: str, end_date: str, limit: int, db: SessionDep
+):
     result = await db.execute(
         text(
             f"""
@@ -207,8 +237,10 @@ LIMIT {limit}
     return result.scalars()._fetchiter_impl()
 
 
-#График 1 состояние 2 выбран регион
-async def total_revenue_by_kpgz_category_by_region_id(start_date: str, end_date: str, region_id: int, limit: int, db: SessionDep):
+# График 1 состояние 2 выбран регион
+async def total_revenue_by_kpgz_category_by_region_id(
+    start_date: str, end_date: str, region_id: int, limit: int, db: SessionDep
+):
     result = await db.execute(
         text(
             f"""
@@ -241,8 +273,11 @@ SELECT
     )
     return result.scalars()._fetchiter_impl()
 
-#График 1 состояние 3 выбран КПГЗ
-async def total_revenue_by_regions_by_kpgz_category_id(start_date: str, end_date: str, kpgz_category_id: int, limit: int, db: SessionDep):
+
+# График 1 состояние 3 выбран КПГЗ
+async def total_revenue_by_regions_by_kpgz_category_id(
+    start_date: str, end_date: str, kpgz_category_id: int, limit: int, db: SessionDep
+):
     result = await db.execute(
         text(
             f"""
@@ -266,8 +301,16 @@ LIMIT {limit}
     )
     return result.scalars()._fetchiter_impl()
 
-#График 1 состояние 4 выбран КПГЗ и регион
-async def total_revenue_by_regions_by_kpgz_category_id(start_date: str, end_date: str, kpgz_category_id: int, region_id: int, limit: int, db: SessionDep):
+
+# График 1 состояние 4 выбран КПГЗ и регион
+async def total_revenue_by_regions_by_kpgz_category_and_region_id(
+    start_date: str,
+    end_date: str,
+    kpgz_category_id: int,
+    region_id: int,
+    limit: int,
+    db: SessionDep,
+):
     result = await db.execute(
         text(
             f"""
@@ -302,8 +345,11 @@ LIMIT {limit}
     )
     return result.scalars()._fetchiter_impl()
 
-#График 3 состояние 1 по месяцам
-async def revenue_trend_by_mounth(supplier_id: int, start_date: str, end_date: str, db: SessionDep):
+
+# График 3 состояние 1 по месяцам
+async def revenue_trend_by_mounth(
+    supplier_id: int, start_date: str, end_date: str, db: SessionDep
+):
     result = await db.execute(
         text(
             f"""
@@ -334,8 +380,11 @@ ORDER BY m.month_start;
     )
     return result.scalars()._fetchiter_impl()
 
-#График 3 состояние 1 по неделям
-async def revenue_trend_by_weeks(supplier_id: int, start_date: str, end_date: str, db: SessionDep):
+
+# График 3 состояние 1 по неделям
+async def revenue_trend_by_weeks(
+    supplier_id: int, start_date: str, end_date: str, db: SessionDep
+):
     result = await db.execute(
         text(
             f"""
@@ -366,8 +415,11 @@ ORDER BY w.week_start;
     )
     return result.scalars()._fetchiter_impl()
 
-#График 3 состояние 2 по месяцам
-async def revenue_trend_by_mounth_by_region_id(supplier_id: int, start_date: str, end_date: str, region_id: int, db: SessionDep):
+
+# График 3 состояние 2 по месяцам
+async def revenue_trend_by_mounth_by_region_id(
+    supplier_id: int, start_date: str, end_date: str, region_id: int, db: SessionDep
+):
     result = await db.execute(
         text(
             f"""
@@ -400,8 +452,11 @@ ORDER BY m.month_start;
     )
     return result.scalars()._fetchiter_impl()
 
-#График 3 состояние 2 по неделям
-async def revenue_trend_by_weeks_by_region_id(supplier_id: int, start_date: str, end_date: str, region_id: int, db: SessionDep):
+
+# График 3 состояние 2 по неделям
+async def revenue_trend_by_weeks_by_region_id(
+    supplier_id: int, start_date: str, end_date: str, region_id: int, db: SessionDep
+):
     result = await db.execute(
         text(
             f"""
@@ -434,8 +489,15 @@ ORDER BY w.week_start;
     )
     return result.scalars()._fetchiter_impl()
 
-#График 3 состояние 3 по месяцам
-async def revenue_trend_by_mounth_by_kpgz_category_id(supplier_id: int, start_date: str, end_date: str, kpgz_category_id: int, db: SessionDep):
+
+# График 3 состояние 3 по месяцам
+async def revenue_trend_by_mounth_by_kpgz_category_id(
+    supplier_id: int,
+    start_date: str,
+    end_date: str,
+    kpgz_category_id: int,
+    db: SessionDep,
+):
     result = await db.execute(
         text(
             f"""
@@ -478,8 +540,15 @@ ORDER BY m.month_start;
     )
     return result.scalars()._fetchiter_impl()
 
-#График 3 состояние 3 по неделям
-async def revenue_trend_by_weeks_by_kpgz_category_id(supplier_id: int, start_date: str, end_date: str, kpgz_category_id: int, db: SessionDep):
+
+# График 3 состояние 3 по неделям
+async def revenue_trend_by_weeks_by_kpgz_category_id(
+    supplier_id: int,
+    start_date: str,
+    end_date: str,
+    kpgz_category_id: int,
+    db: SessionDep,
+):
     result = await db.execute(
         text(
             f"""
@@ -522,8 +591,16 @@ ORDER BY w.week_start;
     )
     return result.scalars()._fetchiter_impl()
 
-#График 3 состояние 4 по месяцам
-async def revenue_trend_by_mounth_by_kpgz_category_id_and_region_id(supplier_id: int, start_date: str, end_date: str, kpgz_category_id: int, region_id: int, db: SessionDep):
+
+# График 3 состояние 4 по месяцам
+async def revenue_trend_by_mounth_by_kpgz_category_id_and_region_id(
+    supplier_id: int,
+    start_date: str,
+    end_date: str,
+    kpgz_category_id: int,
+    region_id: int,
+    db: SessionDep,
+):
     result = await db.execute(
         text(
             f"""
@@ -560,8 +637,16 @@ ORDER BY m.month_start;
     )
     return result.scalars()._fetchiter_impl()
 
-#График 3 состояние 4 по месяцам
-async def revenue_trend_by_weeks_by_kpgz_category_id_and_region_id(supplier_id: int, start_date: str, end_date: str, kpgz_category_id: int, region_id: int, db: SessionDep):
+
+# График 3 состояние 4 по месяцам
+async def revenue_trend_by_weeks_by_kpgz_category_id_and_region_id(
+    supplier_id: int,
+    start_date: str,
+    end_date: str,
+    kpgz_category_id: int,
+    region_id: int,
+    db: SessionDep,
+):
     result = await db.execute(
         text(
             f"""
@@ -599,8 +684,10 @@ ORDER BY w.week_start;
     return result.scalars()._fetchiter_impl()
 
 
-#График 4 состояние 1 по месяцам
-async def revenue_by_customers(supplier_id: int, start_date: str, end_date: str, limit: int, db: SessionDep):
+# График 4 состояние 1 по месяцам
+async def revenue_by_customers(
+    supplier_id: int, start_date: str, end_date: str, limit: int, db: SessionDep
+):
     result = await db.execute(
         text(
             f"""
@@ -620,8 +707,16 @@ LIMIT {limit}
     )
     return result.scalars()._fetchiter_impl()
 
-#График 4 состояние 2 по месяцам когда выбран регион
-async def revenue_by_customers_by_region_id(supplier_id: int, start_date: str, end_date: str, region_id: int, limit: int, db: SessionDep):
+
+# График 4 состояние 2 по месяцам когда выбран регион
+async def revenue_by_customers_by_region_id(
+    supplier_id: int,
+    start_date: str,
+    end_date: str,
+    region_id: int,
+    limit: int,
+    db: SessionDep,
+):
     result = await db.execute(
         text(
             f"""
@@ -644,8 +739,16 @@ LIMIT {limit}
     )
     return result.scalars()._fetchiter_impl()
 
-#График 4 состояние 3 по месяцам когда выбран КПГЗ
-async def revenue_by_customers_by_region_id(supplier_id: int, start_date: str, end_date: str, kpgz_category_id: int, limit: int, db: SessionDep):
+
+# График 4 состояние 3 по месяцам когда выбран КПГЗ
+async def revenue_by_customers_by_kpgz_id(
+    supplier_id: int,
+    start_date: str,
+    end_date: str,
+    kpgz_category_id: int,
+    limit: int,
+    db: SessionDep,
+):
     result = await db.execute(
         text(
             f"""
@@ -664,7 +767,45 @@ WHERE s.id = {supplier_id}  -- ID поставщика
     AND kc.id = {kpgz_category_id}  -- Укрупненный КПГЗ
 GROUP BY cus.name
 ORDER BY total_revenue DESC;
+            """
+        )
+    )
+    return result.scalars()._fetchiter_impl()
 
+
+# График 4 состояние 4 когда выбран КПГЗ и регион
+async def revenue_by_customers_by_region_id_and_kpgz_category_id(
+    supplier_id: int,
+    start_date: str,
+    end_date: str,
+    kpgz_category_id: int,
+    region_id,
+    limit: int,
+    db: SessionDep,
+):
+    result = await db.execute(
+        text(
+            f"""
+SELECT 
+        c.name AS customer_name,
+        SUM(o.oferta_price * o.count) AS revenue
+    FROM
+        ks
+    JOIN customers c ON ks.customer_id = c.id
+    JOIN regions r ON c.region_id = r.id
+    JOIN orders o ON ks.id_ks = o.id_ks
+    JOIN cte ON o.id_cte = cte.id
+    JOIN kpgz_details kd ON cte.kpgz_id = kd.id
+    JOIN kpgz_categories kc ON kd.parent_id = kc.id
+    WHERE
+        ks.winner_id = {supplier_id}
+        AND ks.end_ks BETWEEN {start_date} AND {end_date}
+        AND kc.id = {kpgz_category_id}
+        AND r.id = {region_id}
+    GROUP BY
+        c.name
+    ORDER BY revenue DESC
+    LIMIT {limit}
             """
         )
     )
