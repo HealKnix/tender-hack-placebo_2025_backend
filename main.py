@@ -158,9 +158,16 @@ async def get_widgets_by_dashboard_id(dashboard_id: int, db: SessionDep):
 # ####################################################################
 
 
-@app.get("/api/utils/herfindahl_hirschman_index/{supplier_id}", tags=["Utils/Metrics"])
-async def get_herfindahl_hirschman_rate(supplier_id: int, db: SessionDep):
-    return await util_views.herfindahl_hirschman_rate(supplier_id, db)
+@app.get(
+    "/api/utils/herfindahl_hirschman_index/{supplier_id}/{start_date}/{end_date}",
+    tags=["Utils/Metrics"],
+)
+async def get_herfindahl_hirschman_rate(
+    supplier_id: int, start_date: str, end_date: str, db: SessionDep
+):
+    return await util_views.herfindahl_hirschman_rate(
+        supplier_id, start_date, end_date, db
+    )
 
 
 @app.get(

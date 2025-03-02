@@ -69,7 +69,7 @@ GROUP BY
             """
         )
     )
-    return result.scalars()._fetchiter_impl()
+    return {"hhi_index": result.scalar()}
 
 
 async def metric_percentage_wins(
@@ -94,7 +94,7 @@ WHERE suppliers.id = {supplier_id}
             """
         )
     )
-    return result.scalars()._fetchiter_impl()
+    return {"win_rate": result.scalar()}
 
 
 async def metric_avg_downgrade_cost(
@@ -116,7 +116,7 @@ GROUP BY s.id;
             """
         )
     )
-    return result.scalars()._fetchiter_impl()
+    return {"avg_reduction_percent": result.scalar()}
 
 
 async def metric_total_revenue(
@@ -132,7 +132,7 @@ WHERE ks.winner_id = {supplier_id}
             """
         )
     )
-    return result.scalars()._fetchiter_impl()
+    return {"avg_reduction_percent": result.scalar()}
 
 
 # График 2 состояние 1
