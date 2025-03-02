@@ -173,7 +173,7 @@ async def revenue_by_kpgz_category_by_region_id(
         text(
             f"""
 SELECT 
-    kc.code || ' ' || kc.name AS kpgz_category,
+    kc.code AS kpgz_category,
     SUM(o.oferta_price * o.count) AS total_revenue
 FROM orders as o
 JOIN ks as k ON o.id_ks = k.id_ks
@@ -184,7 +184,7 @@ JOIN kpgz_categories as kc ON kd.parent_id = kc.id
 WHERE k.winner_id = {supplier_id}
   AND k.end_ks BETWEEN '{start_date}' AND '{end_date}'
   AND cust.region_id = {region_id}
-GROUP BY kc.name, kc.code
+GROUP BY kc.code
 ORDER BY total_revenue DESC
 LIMIT {limit};
             """
@@ -282,7 +282,7 @@ async def total_revenue_by_kpgz_category(
         text(
             f"""
 SELECT 
-    kc.name AS aggregated_kpgz,
+    kc.code AS aggregated_kpgz,
     SUM(o.count * o.oferta_price)/1000000 AS total_revenue
 FROM orders o
 JOIN ks k ON o.id_ks = k.id_ks
@@ -290,7 +290,7 @@ JOIN cte c ON o.id_cte = c.id
 JOIN kpgz_details kd ON c.kpgz_id = kd.id
 JOIN kpgz_categories kc ON kd.parent_id = kc.id
 WHERE k.start_ks BETWEEN '{start_date}' AND '{end_date}'
-GROUP BY kc.name
+GROUP BY kc.code
 ORDER BY total_revenue DESC
 LIMIT {limit}
 
@@ -308,7 +308,7 @@ async def total_revenue_by_kpgz_category_by_region_id(
         text(
             f"""
 SELECT 
-        kc.code || ' ' || kc.name AS category_name,
+        kc.code AS category_name,
         SUM(o.count * o.oferta_price) / 1000000 AS revenue
     FROM 
         orders o
@@ -328,7 +328,7 @@ SELECT
         ks.start_ks BETWEEN '{start_date}' AND '{end_date}'
         AND c.region_id = {region_id}
     GROUP BY 
-        kc.code, kc.name
+        kc.code
   ORDER BY revenue DESC
   LIMIT {limit}
             """
